@@ -1,0 +1,50 @@
+# 依赖
+fm-web/node_modules
+fm-web/.pnp
+fm-web/.pnp.js
+
+# 生产构建
+fm-web/dist
+fm-web/dist-ssr
+*.local
+
+# 编辑器
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 日志
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 环境变量
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 临时文件
+*.tmp
+*.temp
+
+# 文档（可以选择提交）
+# 但是一些临时报告文件排除
+*_REPORT.md
+*_SUMMARY.md
+*_COMPLETE.md
+!README.md
+!QUICKSTART.md
+!todo.md
+
