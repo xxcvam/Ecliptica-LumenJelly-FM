@@ -11,6 +11,9 @@ uniform vec3 u_bands;
 uniform vec3 u_color;
 uniform float u_grid;
 uniform float u_glow;
+uniform float u_scanline;
+uniform float u_trail;
+uniform float u_vignette;
 
 float line(vec2 uv, float offset) {
   float f = abs(fract(uv.x + offset) - 0.5);
@@ -33,11 +36,11 @@ void main() {
 
   vec3 base = u_color * (0.4 + u_rms * 1.2);
   vec3 color = base;
-  color += vec3(0.1, 0.2, 0.4) * scan * u_glow;
-  color += vec3(0.05, 0.1, 0.2) * pulse * u_glow;
+  color += vec3(0.1, 0.2, 0.4) * scan * u_glow * u_scanline;
+  color += vec3(0.05, 0.1, 0.2) * pulse * u_glow * u_trail;
   color += glow * vec3(0.5, 0.7, 1.0);
 
-  float vignette = smoothstep(0.9, 0.2, length(uv) + u_rms * 0.1);
+  float vignette = smoothstep(0.9, 0.2, length(uv) + u_rms * 0.1) * u_vignette;
   color *= vignette;
 
   gl_FragColor = vec4(color, 1.0);
@@ -64,7 +67,10 @@ function NeonPlane({ audio, params }: VisualProps) {
       u_bands: { value: new Vector3(...audio.bands()) },
       u_color: { value: new Vector3(color.r, color.g, color.b) },
       u_grid: { value: typeof params?.grid === 'number' ? params!.grid : 0.8 },
-      u_glow: { value: typeof params?.glow === 'number' ? params!.glow : 1.0 }
+      u_glow: { value: typeof params?.glow === 'number' ? params!.glow : 1.0 },
+      u_scanline: { value: typeof params?.scanline === 'number' ? params!.scanline : 0.5 },
+      u_trail: { value: typeof params?.trail === 'number' ? params!.trail : 0.5 },
+      u_vignette: { value: typeof params?.vignette === 'number' ? params!.vignette : 1.0 }
     };
   }, [audio, params]);
 
