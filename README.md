@@ -1,6 +1,6 @@
-# WebFM - FM 合成器 Web 应用
+# Ecliptica LumenJelly FM
 
-一个现代化的 FM 合成器，采用 React + Web Audio API + AudioWorklet 技术栈，支持实时音频合成、可视化效果和音序器。
+一个现代化的 FM 合成器 Web 应用，融合了音频合成技术与沉浸式可视化体验。
 
 ## 🎹 特性
 
@@ -10,7 +10,7 @@
 - **LFO 调制** - 低频振荡器，支持 pitch/amp/fmIndex/modRatio 目标
 - **Delay 效果** - 立体声延迟效果
 
-### 可视化
+### 可视化系统（LumenJelly）
 - **6 种实时可视化效果**：
   - 🪼 **Jelly** - 水母发光触手
   - 🌫️ **Nebula** - 星云雾气 Shader
@@ -70,7 +70,7 @@ npm run preview
 ## 📦 项目结构
 
 ```
-WebFM/
+Ecliptica-LumenJelly-FM/
 ├── fm-web/                 # 主应用
 │   ├── src/
 │   │   ├── audio/          # 音频引擎
@@ -109,12 +109,16 @@ WebFM/
 ## 📝 开发状态
 
 - ✅ 音频引擎（FM + ADSR + LFO + Delay）
-- ✅ UI 控件（Knob、Slider、Keyboard）
-- ✅ 可视化系统（6 种效果）
+- ✅ 可视化系统（LumenJelly - 6 种效果）
 - ✅ 音序器（16 步 + 多模式）
 - ✅ 工厂预设（8 个音色）
 - ✅ 移动端优化
 - ✅ 性能自适应降级
+
+## 🎯 项目名由来
+
+**Ecliptica** - 日食般的音色变化，暗指 FM 调制的光学折射  
+**LumenJelly** - 光之水母，指代核心可视化：动态发光的水母触手
 
 ## 📄 许可证
 
