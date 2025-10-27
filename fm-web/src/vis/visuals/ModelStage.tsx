@@ -1,59 +1,75 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Suspense, useMemo, useRef, useState, useEffect } from 'react';
+import { Suspense, useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { Environment, ContactShadows } from '@react-three/drei';
 import type { VisualProps } from '../registry';
 
 type ModelStageParams = {
   src?: string;
   quality?: 'high' | 'low';
   fallback?: boolean;
+  style?: 'wire' | 'matcap' | 'pbr';
+  lineColor?: string;
+  fillColor?: string;
+  env?: 'studio' | 'sunset';
+  scale?: number;
 };
 
-// Fallback 组件：当模型加载失败时显示
-function ModelFallback({ audio }: VisualProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
-
-  useFrame((_, dt) => {
-    const [low, mid] = audio.bands();
-    const rms = audio.rms();
-    if (meshRef.current) {
-      meshRef.current.rotation.y += dt * (0.4 + mid * 0.8);
-      meshRef.current.position.y = Math.sin(performance.now() * 0.001) * 0.05 * (0.6 + low);
-      const scale = 0.95 + rms * 0.12;
-      meshRef.current.scale.setScalar(scale);
-    }
-  });
-
+function MinimalBackdrop() {
   return (
-    <mesh ref={meshRef}>
-      <icosahedronGeometry args={[1, 2]} />
-      <meshStandardMaterial
-        color="#78d0ff"
-        emissive="#bfa8ff"
-        emissiveIntensity={0.3 + audio.rms() * 0.5}
-        metalness={0.7}
-        roughness={0.2}
-      />
-    </mesh>
+    <group position={[0, 0, -2]} renderOrder={-10}>
+      {/* 渐变背景面 */}
+      <mesh renderOrder={-10}>
+        <planeGeometry args={[12, 7]} />
+        <shaderMaterial
+          depthWrite={false}
+          fragmentShader={`
+            precision mediump float;
+            varying vec2 vUv;
+            void main(){
+              vec2 uv = vUv - 0.5;
+              float r = length(uv * vec2(1.6, 1.0));
+              vec3 c1 = vec3(0.06);
+              vec3 c2 = vec3(0.15);
+              vec3 col = mix(c2, c1, smoothstep(0.0, 1.0, r));
+              gl_FragColor = vec4(col, 1.0);
+            }
+          `}
+          vertexShader={`
+            varying vec2 vUv;
+            void main(){
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `}
+        />
+      </mesh>
+
+      {/* 竖线：手动渲染而不是 JSX */}
+      <group></group>
+
+      {/* 日落圆盘 */}
+      <SunDisc radius={1.3} ringColor="#e6e6e6" fill="#1a1a1a" />
+    </group>
   );
 }
 
-// 加载状态指示器
-function LoadingIndicator({ audio }: VisualProps) {
+function SunDisc({ radius, ringColor, fill }: { radius: number; ringColor: string; fill: string }) {
   return (
-    <mesh position={[0, 0, 0]}>
-      <boxGeometry args={[0.5, 0.5, 0.5]} />
-      <meshStandardMaterial
-        color="#66ccff"
-        emissive="#ffd1f0"
-        emissiveIntensity={0.5 + audio.rms() * 0.3}
-      />
-    </mesh>
+    <group position={[2.0, -0.2, 0]} renderOrder={-8}>
+      <mesh>
+        <circleGeometry args={[radius, 64]} />
+        <meshBasicMaterial color={fill} />
+      </mesh>
+      <mesh>
+        <ringGeometry args={[radius * 1.01, radius * 1.07, 128]} />
+        <meshBasicMaterial color={ringColor} />
+      </mesh>
+    </group>
   );
 }
 
-// 主模型加载组件
 function ModelInner({ audio, params }: VisualProps) {
   const stageParams = params as ModelStageParams;
   const groupRef = useRef<THREE.Group>(null);
@@ -61,6 +77,9 @@ function ModelInner({ audio, params }: VisualProps) {
   const [gltf, setGltf] = useState<THREE.Group | null>(null);
 
   const modelSrc = stageParams?.src || '/models/default/whale.glb';
+  const style = stageParams?.style ?? 'wire';
+  const lineColor = new THREE.Color(stageParams?.lineColor ?? '#e6e6e6');
+  const fillColor = new THREE.Color(stageParams?.fillColor ?? '#111111');
 
   useEffect(() => {
     const loader = new GLTFLoader();
@@ -77,6 +96,49 @@ function ModelInner({ audio, params }: VisualProps) {
     );
   }, [modelSrc]);
 
+  useEffect(() => {
+    if (!gltf || error) return;
+
+    gltf.traverse((obj) => {
+      if (!(obj as THREE.Mesh).isMesh) return;
+      const mesh = obj as THREE.Mesh;
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+
+      if (style === 'wire') {
+        mesh.material = new THREE.MeshBasicMaterial({
+          color: fillColor,
+          transparent: true,
+          opacity: 0.95
+        });
+
+        const edges = new THREE.EdgesGeometry(mesh.geometry, 35);
+        const lines = new THREE.LineSegments(
+          edges,
+          new THREE.LineBasicMaterial({
+            color: lineColor,
+            transparent: true,
+            opacity: 0.9,
+            linewidth: 1
+          })
+        );
+        mesh.add(lines);
+      } else if (style === 'matcap') {
+        mesh.material = new THREE.MeshMatcapMaterial({
+          color: '#dcdcdc'
+        });
+      } else {
+        mesh.material = new THREE.MeshStandardMaterial({
+          color: '#cccccc',
+          roughness: 0.35,
+          metalness: 0.0
+        });
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    });
+  }, [gltf, error, style, lineColor, fillColor]);
+
   const model = useMemo(() => {
     if (!gltf || error) return null;
 
@@ -91,37 +153,35 @@ function ModelInner({ audio, params }: VisualProps) {
     clone.scale.setScalar(scale);
     clone.traverse((obj) => {
       if ((obj as THREE.Mesh).isMesh) {
-        const mesh = obj as THREE.Mesh;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-        const mat = mesh.material as THREE.Material & { envMapIntensity?: number };
+        const m = obj as THREE.Mesh;
+        m.castShadow = style === 'pbr';
+        m.receiveShadow = style === 'pbr';
+        const mat = m.material as THREE.Material & { envMapIntensity?: number };
         if (mat && 'envMapIntensity' in mat) {
           mat.envMapIntensity = 0.9;
         }
       }
     });
     return clone;
-  }, [gltf, error]);
+  }, [gltf, error, style]);
 
   useFrame((_, dt) => {
     const [low, mid] = audio.bands();
     const rms = audio.rms();
     if (groupRef.current) {
-      groupRef.current.rotation.y += dt * (0.4 + mid * 0.8);
-      groupRef.current.position.y = Math.sin(performance.now() * 0.001) * 0.05 * (0.6 + low);
-      const scale = 0.95 + rms * 0.12;
-      groupRef.current.scale.set(scale, scale, scale);
+      groupRef.current.rotation.y += dt * 0.25 * (0.6 + mid);
+      groupRef.current.position.y = Math.sin(performance.now() * 0.001) * 0.03 * (0.5 + low);
+      const scale = (stageParams?.scale ?? 1.0) * (0.98 + rms * 0.06);
+      groupRef.current.scale.setScalar(scale);
     }
   });
 
-  // 如果出错且有 fallback，显示 fallback
   if (error && stageParams?.fallback) {
-    return <ModelFallback audio={audio} params={params} />;
+    return <mesh></mesh>;
   }
 
-  // 如果正在加载
   if (!model) {
-    return <LoadingIndicator audio={audio} params={params} />;
+    return <mesh></mesh>;
   }
 
   return (
@@ -132,34 +192,34 @@ function ModelInner({ audio, params }: VisualProps) {
 }
 
 const ModelStageVisual = ({ audio, params }: VisualProps) => {
-  const quality = (params as ModelStageParams)?.quality === 'low' ? 'low' : 'high';
+  const stageParams = params as ModelStageParams;
+  const quality = stageParams?.quality === 'low' ? 'low' : 'high';
   const cameraZ = quality === 'low' ? 3.2 : 2.5;
   const shadowMap = quality === 'low' ? 512 : 1024;
+  const style = stageParams?.style ?? 'wire';
 
   return (
-    <Canvas
-      shadows
-      camera={{ position: [0, 0.9, cameraZ], fov: 45 }}
-      dpr={quality === 'low' ? [1, 1] : [1, 1.5]}
-      gl={{ antialias: quality !== 'low' }}
-    >
-      <color attach="background" args={['#02060b']} />
-      <ambientLight intensity={0.25 + audio.rms() * 0.4} />
-      <directionalLight
-        position={[2.5, 3.5, 1.5]}
-        intensity={0.9 + audio.rms() * 0.7}
-        castShadow
-        shadow-mapSize-width={shadowMap}
-        shadow-mapSize-height={shadowMap}
-      />
-      <Suspense fallback={<LoadingIndicator audio={audio} params={params} />}>
+    <Canvas camera={{ position: [0, 0.9, cameraZ], fov: 45 }} dpr={quality === 'low' ? [1, 1] : [1, 1.5]} gl={{ antialias: quality !== 'low' }}>
+      <color attach="background" args={['#0a0a0a']} />
+      <ambientLight intensity={style === 'pbr' ? 0.25 + audio.rms() * 0.4 : 0} />
+      <directionalLight position={[2.5, 3.5, 1.5]} intensity={style === 'pbr' ? 0.9 + audio.rms() * 0.7 : 0} castShadow={style === 'pbr'} shadow-mapSize-width={shadowMap} shadow-mapSize-height={shadowMap} />
+
+      <Suspense fallback={null}>
+        <MinimalBackdrop />
         <ModelInner audio={audio} params={params} />
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.05, 0]} receiveShadow>
-          <planeGeometry args={[6, 6]} />
-          <meshStandardMaterial color="#0a141d" roughness={0.95} metalness={0.05} />
-        </mesh>
+        {style === 'pbr' && (
+          <>
+            <Environment preset={stageParams?.env || 'studio'} />
+            <ContactShadows position={[0, -1.05, 0]} blur={2} opacity={0.35} scale={5} receiveShadow />
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.05, 0]} receiveShadow>
+              <planeGeometry args={[6, 6]} />
+              <meshStandardMaterial color="#0a141d" roughness={0.95} metalness={0.05} />
+            </mesh>
+          </>
+        )}
       </Suspense>
-      <spotLight position={[-2, 3, -1]} intensity={0.5} angle={0.6} penumbra={0.4} />
+
+      {style === 'pbr' && <spotLight position={[-2, 3, -1]} intensity={0.5} angle={0.6} penumbra={0.4} />}
     </Canvas>
   );
 };
