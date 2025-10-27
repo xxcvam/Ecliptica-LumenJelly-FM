@@ -1,7 +1,13 @@
 {
-  "name": "fm-web",
+  "name": "@ecliptica/lumenjelly-fm",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "WebAudio × Three.js × Rodin 模型的可视化 FM 合成器与音序器",
+  "author": "Ecliptica Studio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xxcvam/Ecliptica-LumenJelly-FM.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

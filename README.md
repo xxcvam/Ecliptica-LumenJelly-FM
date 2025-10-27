@@ -18,6 +18,7 @@
   - 🌊 **CausticSea** - 焦散海洋光效
   - 💠 **NeonGrid** - 霓虹网格
   - 🐋 **ModelStage** - 3D 模型舞台
+- **自定义模型支持** - 上传并使用自己的 glTF/GLB 模型
 
 ### 音序器
 - **16 步音序器** - 支持多模式（4/4、3/4、5/4）
@@ -98,18 +99,26 @@ Ecliptica-LumenJelly-FM/
 | 预设 | 可视化 |
 |-----|--------|
 | Sleepy Jellyfish | Jelly |
-| Robot Teacup | Bubbles |
+| Robot Teacup | Model (3D) |
 | Foggy Pancake | Nebula |
 | Submarine Bounce | CausticSea |
 | Bubble Pop | Bubbles |
 | Ice Cream Bell | NeonGrid |
-| Slow Whale | CausticSea |
+| Slow Whale | Model (3D) |
 | Midnight Arcade | NeonGrid |
+
+### 3D 模型系统
+- **支持的格式**：GLB（推荐）、glTF
+- **文件大小**：建议 < 5MB，最大 10MB
+- **使用方式**：通过 UI 上传或放入 `/models/default/` 目录
+- **Fallback 机制**：模型加载失败时自动切换到备用可视化
+- **详细指南**：查看 [MODEL_GUIDE.md](MODEL_GUIDE.md)
 
 ## 📝 开发状态
 
 - ✅ 音频引擎（FM + ADSR + LFO + Delay）
 - ✅ 可视化系统（LumenJelly - 6 种效果）
+- ✅ 3D 模型系统（自定义上传 + Fallback）
 - ✅ 音序器（16 步 + 多模式）
 - ✅ 工厂预设（8 个音色）
 - ✅ 移动端优化

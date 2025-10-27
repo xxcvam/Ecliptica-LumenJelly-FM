@@ -1,21 +1,86 @@
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
-import { Suspense, useMemo, useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Suspense, useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { VisualProps } from '../registry';
 
-type StageParams = {
+type ModelStageParams = {
   src?: string;
   quality?: 'high' | 'low';
+  fallback?: boolean;
 };
 
+// Fallback 组件：当模型加载失败时显示
+function ModelFallback({ audio }: VisualProps) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame((_, dt) => {
+    const [low, mid] = audio.bands();
+    const rms = audio.rms();
+    if (meshRef.current) {
+      meshRef.current.rotation.y += dt * (0.4 + mid * 0.8);
+      meshRef.current.position.y = Math.sin(performance.now() * 0.001) * 0.05 * (0.6 + low);
+      const scale = 0.95 + rms * 0.12;
+      meshRef.current.scale.setScalar(scale);
+    }
+  });
+
+  return (
+    <mesh ref={meshRef}>
+      <icosahedronGeometry args={[1, 2]} />
+      <meshStandardMaterial
+        color="#78d0ff"
+        emissive="#bfa8ff"
+        emissiveIntensity={0.3 + audio.rms() * 0.5}
+        metalness={0.7}
+        roughness={0.2}
+      />
+    </mesh>
+  );
+}
+
+// 加载状态指示器
+function LoadingIndicator({ audio }: VisualProps) {
+  return (
+    <mesh position={[0, 0, 0]}>
+      <boxGeometry args={[0.5, 0.5, 0.5]} />
+      <meshStandardMaterial
+        color="#66ccff"
+        emissive="#ffd1f0"
+        emissiveIntensity={0.5 + audio.rms() * 0.3}
+      />
+    </mesh>
+  );
+}
+
+// 主模型加载组件
 function ModelInner({ audio, params }: VisualProps) {
-  const stageParams = params as StageParams;
+  const stageParams = params as ModelStageParams;
   const groupRef = useRef<THREE.Group>(null);
-  const gltf = useLoader(GLTFLoader, stageParams?.src || '/models/whale_low.glb');
+  const [error, setError] = useState(false);
+  const [gltf, setGltf] = useState<THREE.Group | null>(null);
+
+  const modelSrc = stageParams?.src || '/models/default/whale.glb';
+
+  useEffect(() => {
+    const loader = new GLTFLoader();
+    loader.load(
+      modelSrc,
+      (result) => {
+        setGltf(result.scene);
+      },
+      undefined,
+      (e) => {
+        console.error('Model loading error:', e);
+        setError(true);
+      }
+    );
+  }, [modelSrc]);
 
   const model = useMemo(() => {
-    const clone = gltf.scene.clone(true);
+    if (!gltf || error) return null;
+
+    const clone = gltf.clone(true);
     const box = new THREE.Box3().setFromObject(clone);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
@@ -36,7 +101,7 @@ function ModelInner({ audio, params }: VisualProps) {
       }
     });
     return clone;
-  }, [gltf]);
+  }, [gltf, error]);
 
   useFrame((_, dt) => {
     const [low, mid] = audio.bands();
@@ -49,6 +114,16 @@ function ModelInner({ audio, params }: VisualProps) {
     }
   });
 
+  // 如果出错且有 fallback，显示 fallback
+  if (error && stageParams?.fallback) {
+    return <ModelFallback audio={audio} params={params} />;
+  }
+
+  // 如果正在加载
+  if (!model) {
+    return <LoadingIndicator audio={audio} params={params} />;
+  }
+
   return (
     <group ref={groupRef}>
       <primitive object={model} />
@@ -57,7 +132,7 @@ function ModelInner({ audio, params }: VisualProps) {
 }
 
 const ModelStageVisual = ({ audio, params }: VisualProps) => {
-  const quality = (params as StageParams)?.quality === 'low' ? 'low' : 'high';
+  const quality = (params as ModelStageParams)?.quality === 'low' ? 'low' : 'high';
   const cameraZ = quality === 'low' ? 3.2 : 2.5;
   const shadowMap = quality === 'low' ? 512 : 1024;
 
@@ -77,7 +152,7 @@ const ModelStageVisual = ({ audio, params }: VisualProps) => {
         shadow-mapSize-width={shadowMap}
         shadow-mapSize-height={shadowMap}
       />
-      <Suspense fallback={null}>
+      <Suspense fallback={<LoadingIndicator audio={audio} params={params} />}>
         <ModelInner audio={audio} params={params} />
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.05, 0]} receiveShadow>
           <planeGeometry args={[6, 6]} />
