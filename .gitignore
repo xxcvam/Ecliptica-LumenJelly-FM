@@ -39,6 +39,10 @@ lerna-debug.log*
 *.tmp
 *.temp
 
+# 3D 模型文件（使用 Git LFS）
+# *.glb
+# *.gltf
+
 # 文档（可以选择提交）
 # 但是一些临时报告文件排除
 *_REPORT.md
