@@ -1,6 +1,6 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import { Color, ShaderMaterial, Vector2, Vector3 } from 'three';
+import { useMemo } from 'react';
+import { Color, Vector2, Vector3 } from 'three';
 import type { VisualProps } from '../registry';
 
 const fragmentShader = /* glsl */ `
@@ -56,7 +56,6 @@ void main() {
 `;
 
 function NeonPlane({ audio, params }: VisualProps) {
-  const materialRef = useRef<ShaderMaterial>(null);
   const uniforms = useMemo(() => {
     const colorHex = (params?.color as string | undefined)?.replace('#', '') ?? '00bfff';
     const color = new Color(`#${colorHex}`);
@@ -80,10 +79,21 @@ function NeonPlane({ audio, params }: VisualProps) {
     uniforms.u_bands.value.set(...audio.bands());
   });
 
+  const shaderMaterial = useMemo(
+    () => (
+      <shaderMaterial
+        fragmentShader={fragmentShader}
+        vertexShader={vertexShader}
+        uniforms={uniforms}
+      />
+    ),
+    [uniforms]
+  );
+
   return (
     <mesh>
       <planeGeometry args={[2, 2]} />
-      <shaderMaterial ref={materialRef} fragmentShader={fragmentShader} vertexShader={vertexShader} uniforms={uniforms} />
+      {shaderMaterial}
     </mesh>
   );
 }
