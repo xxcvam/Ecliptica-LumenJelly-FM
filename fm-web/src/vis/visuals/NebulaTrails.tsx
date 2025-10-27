@@ -189,6 +189,8 @@ function GradientBg() {
 /* ---------- 入口可视 ---------- */
 export default function NebulaTrailsVisual({ audio, params }: VisualProps) {
   const lowQ = params?.quality === 'low';
+  const bloomIntensity = typeof params?.bloom === 'number' ? (params!.bloom as number) : 0.6;
+  const vignetteDarkness = typeof params?.vignette === 'number' ? (params!.vignette as number) : 0.9;
   return (
     <Canvas orthographic dpr={lowQ ? [1, 1] : [1, 1.5]} camera={{ zoom: 200 }}>
       <color attach="background" args={['#07060a']} />
@@ -196,8 +198,10 @@ export default function NebulaTrailsVisual({ audio, params }: VisualProps) {
       <GalaxyPoints audio={audio} params={params} />
       {!lowQ && (
         <EffectComposer multisampling={0}>
-          <Bloom intensity={0.6} luminanceThreshold={0.1} luminanceSmoothing={0.3} />
-          <Vignette eskil={false} offset={0.2} darkness={0.9} />
+          {bloomIntensity > 0 && (
+            <Bloom intensity={bloomIntensity} luminanceThreshold={0.1} luminanceSmoothing={0.3} />
+          )}
+          <Vignette eskil={false} offset={0.2} darkness={vignetteDarkness} />
           <Noise opacity={0.03} premultiply />
         </EffectComposer>
       )}

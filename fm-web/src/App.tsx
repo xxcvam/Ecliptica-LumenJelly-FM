@@ -22,6 +22,7 @@ import { factoryPresets, parameterBounds } from './presets';
 import type { Preset } from './presets';
 import { PRESET_VISUAL_MAP } from './presets/map';
 import { VisualPanel } from './vis/VisualPanel';
+import { noteBus, freqToMidi } from './vis/events/bus';
 import { AdsrPreview } from './ui/AdsrPreview';
 import { ModelUploader } from './ui/ModelUploader';
 import { SequencerPanel } from './sequencer/SequencerPanel';
@@ -507,7 +508,16 @@ function App() {
             <h3>键盘 (C2 - C4)</h3>
             <div className="piano-wrap">
               <div className="piano">
-                <Keyboard onNoteOn={noteOn} onNoteOff={noteOff} />
+                <Keyboard
+                  onNoteOn={(freq: number) => {
+                    noteOn(freq);
+                    const midi = freqToMidi(freq);
+                    noteBus.emit({ time: performance.now(), midi, vel: 1, source: 'kbd' });
+                  }}
+                  onNoteOff={() => {
+                    noteOff();
+                  }}
+                />
               </div>
             </div>
             <details className="keyboard-guide">

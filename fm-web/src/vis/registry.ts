@@ -22,7 +22,8 @@ export const VisualRegistry: Record<string, VisualFactory> = {
   nebulaTrails: () => import('./visuals/NebulaTrails').then((m) => m.default),
   caustic: () => import('./visuals/CausticSea').then((m) => m.default),
   jelly: () => import('./visuals/Jelly').then((m) => m.default),
-  model: () => import('./visuals/ModelStage').then((m) => m.default)
+  model: () => import('./visuals/ModelStage').then((m) => m.default),
+  chimeBox: () => import('./visuals/ChimeMusicBox').then((m) => m.default)
 };
 
 export type VisualID = keyof typeof VisualRegistry;

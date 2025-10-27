@@ -68,7 +68,16 @@ export function VisualPanel({ analyser, visualId, visualParams, bpm }: VisualPan
     [audioData]
   );
 
-  const mergedParams = useMemo(() => ({ ...(visualParams || {}), quality }), [visualParams, quality]);
+  const mergedParams = useMemo(
+    () => ({
+      ...(visualParams || {}),
+      quality,
+      // 提供默认 FX 控制，便于外部在 params 注入覆盖
+      bloom: (visualParams as any)?.bloom ?? (quality === 'low' ? 0 : 0.55),
+      vignette: (visualParams as any)?.vignette ?? 0.9
+    }),
+    [visualParams, quality]
+  );
 
   return (
     <div className="visual-panel">

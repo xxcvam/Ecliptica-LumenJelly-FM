@@ -69,6 +69,7 @@ export class StepSequencer {
   private direction = 1;
   private scheduleId: number | null = null;
   private visualTimeouts: number[] = [];
+  private noteTimeouts: number[] = [];
 
   private nextNoteTime = 0;
   private playing = false;
@@ -167,6 +168,16 @@ export class StepSequencer {
       const eventTime = time + i * slice;
       const length = slice * 0.95;
       this.api.noteOnAt(freq, step.velocity / 127, eventTime, length);
+      // 事件总线：在精确时间点发出 note 事件（与可视同步）
+      const delayMs = Math.max(0, (eventTime - this.ctx.currentTime) * 1000);
+      const timeoutId = window.setTimeout(async () => {
+        try {
+          const bus = await import('../vis/events/bus');
+          const midiVal = bus.freqToMidi(freq);
+          bus.noteBus.emit({ time: performance.now(), midi: midiVal, vel: Math.min(1, step.velocity / 127), source: 'seq' });
+        } catch {}
+      }, delayMs);
+      this.noteTimeouts.push(timeoutId);
     }
 
     if (this.onVisualStep) {
@@ -174,6 +185,15 @@ export class StepSequencer {
       const timeout = window.setTimeout(() => this.onVisualStep && this.onVisualStep(index), delay);
       this.visualTimeouts.push(timeout);
     }
+    // 同步 Accent 事件（步进入时）
+    const accentDelay = Math.max(0, (time - this.ctx.currentTime) * 1000);
+    const accentTimeout = window.setTimeout(async () => {
+      try {
+        const bus = await import('../vis/events/bus');
+        bus.accentBus.emit({ time: performance.now(), step: index, on: !!step.on });
+      } catch {}
+    }, accentDelay);
+    this.visualTimeouts.push(accentTimeout);
   }
 
   private advance() {
@@ -224,5 +244,9 @@ export class StepSequencer {
   private clearVisualTimeouts() {
     this.visualTimeouts.forEach((id) => clearTimeout(id));
     this.visualTimeouts = [];
+    this.noteTimeouts.forEach((id) => clearTimeout(id));
+    this.noteTimeouts = [];
   }
 }
+
+// 动态导入已处理，移除兼容函数
