@@ -786,7 +786,7 @@ body {
 
 .app-footer {
     margin-top: 28px;
-    text-align: center;
+  text-align: center;
     color: var(--text-secondary);
     letter-spacing: 0.06em;
     display: flex;

@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { Color, InstancedMesh, Object3D, Vector3, DynamicDrawUsage } from 'three';
 import type { VisualProps } from '../registry';
 import { Environment, Sparkles } from '@react-three/drei';
@@ -30,6 +30,11 @@ function BubblesContent({ audio, params }: VisualProps) {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return;
+    
+    // 确保材质已准备好
+    const m = meshRef.current.material;
+    if (!m) return;
+    
     const [, mid, high] = audio.bands();
     const rms = audio.rms();
     const rise = 0.35 + high * 2.0;
@@ -92,14 +97,17 @@ function BubblesContent({ audio, params }: VisualProps) {
       meshRef.current.instanceColor.needsUpdate = true;
     }
 
-    // 将音频特征映射到物理材质的"薄膜虹彩"
-    const m = meshRef.current.material;
+    // 将音频特征映射到物理材质的"薄膜虹彩"（安全检查）
     if (m && 'isMeshPhysicalMaterial' in m && (m as any).isMeshPhysicalMaterial) {
-      // 高频让虹彩厚度/变化更明显
-      (m as any).iridescenceThicknessRange = [120 + high * 200, 480 + high * 400];
-      // RMS 让整体透光更亮（感觉更"湿"）
-      (m as any).transmission = 0.9 + Math.min(0.09, rms * 0.2);
-      (m as any).needsUpdate = false;
+      try {
+        // 高频让虹彩厚度/变化更明显
+        (m as any).iridescenceThicknessRange = [120 + high * 200, 480 + high * 400];
+        // RMS 让整体透光更亮（感觉更"湿"）
+        (m as any).transmission = 0.9 + Math.min(0.09, rms * 0.2);
+      } catch (e) {
+        // 忽略材质更新错误，避免崩溃
+        console.warn('Bubble material update failed:', e);
+      }
     }
   });
 
@@ -169,14 +177,16 @@ const BubblesVisual = ({ audio, params }: VisualProps) => {
       <ambientLight intensity={0.25 + audio.rms() * 0.5} />
       <directionalLight position={[5, 5, 5]} intensity={lowQ ? 0.35 : 0.6} />
 
-      {/* IBL：物理玻璃必备 */}
-      <Environment preset="city" />
+      <Suspense fallback={null}>
+        {/* IBL：物理玻璃必备，使用 Suspense 包裹避免加载失败 */}
+        <Environment preset="city" />
+        
+        <Backdrop />
+        <BubblesContent audio={audio} params={params} />
 
-      <Backdrop />
-      <BubblesContent audio={audio} params={params} />
-
-      {/* 可选：轻微星点，模拟爆裂后的小亮屑 */}
-      {!lowQ && <Sparkles count={40} speed={1.5} size={2} scale={[6, 3, 1]} color="#a8d8ff" />}
+        {/* 可选：轻微星点，模拟爆裂后的小亮屑 */}
+        {!lowQ && <Sparkles count={40} speed={1.5} size={2} scale={[6, 3, 1]} color="#a8d8ff" />}
+      </Suspense>
     </Canvas>
   );
 };

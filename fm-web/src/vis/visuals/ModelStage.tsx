@@ -28,8 +28,8 @@ function MinimalBackdrop() {
             precision mediump float;
             varying vec2 vUv;
             void main(){
-              vec2 uv = vUv - 0.5;
-              float r = length(uv * vec2(1.6, 1.0));
+              vec2 uv2 = vUv - 0.5;
+              float r = length(uv2 * vec2(1.6, 1.0));
               vec3 c1 = vec3(0.06);
               vec3 c2 = vec3(0.15);
               vec3 col = mix(c2, c1, smoothstep(0.0, 1.0, r));
@@ -96,49 +96,6 @@ function ModelInner({ audio, params }: VisualProps) {
     );
   }, [modelSrc]);
 
-  useEffect(() => {
-    if (!gltf || error) return;
-
-    gltf.traverse((obj) => {
-      if (!(obj as THREE.Mesh).isMesh) return;
-      const mesh = obj as THREE.Mesh;
-      mesh.castShadow = false;
-      mesh.receiveShadow = false;
-
-      if (style === 'wire') {
-        mesh.material = new THREE.MeshBasicMaterial({
-          color: fillColor,
-          transparent: true,
-          opacity: 0.95
-        });
-
-        const edges = new THREE.EdgesGeometry(mesh.geometry, 35);
-        const lines = new THREE.LineSegments(
-          edges,
-          new THREE.LineBasicMaterial({
-            color: lineColor,
-            transparent: true,
-            opacity: 0.9,
-            linewidth: 1
-          })
-        );
-        mesh.add(lines);
-      } else if (style === 'matcap') {
-        mesh.material = new THREE.MeshMatcapMaterial({
-          color: '#dcdcdc'
-        });
-      } else {
-        mesh.material = new THREE.MeshStandardMaterial({
-          color: '#cccccc',
-          roughness: 0.35,
-          metalness: 0.0
-        });
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-      }
-    });
-  }, [gltf, error, style, lineColor, fillColor]);
-
   const model = useMemo(() => {
     if (!gltf || error) return null;
 
@@ -151,19 +108,46 @@ function ModelInner({ audio, params }: VisualProps) {
     clone.position.sub(center);
     const scale = 1.4 / maxAxis;
     clone.scale.setScalar(scale);
+    
+    // 应用材质和样式
     clone.traverse((obj) => {
-      if ((obj as THREE.Mesh).isMesh) {
-        const m = obj as THREE.Mesh;
-        m.castShadow = style === 'pbr';
-        m.receiveShadow = style === 'pbr';
-        const mat = m.material as THREE.Material & { envMapIntensity?: number };
-        if (mat && 'envMapIntensity' in mat) {
-          mat.envMapIntensity = 0.9;
+      if (!(obj as THREE.Mesh).isMesh) return;
+      const mesh = obj as THREE.Mesh;
+
+      if (style === 'wire') {
+        // 使用简化的 wireframe 模式
+        const mat = new THREE.MeshBasicMaterial({
+          color: lineColor,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.8
+        });
+        mesh.material = mat;
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
+      } else if (style === 'matcap') {
+        mesh.material = new THREE.MeshMatcapMaterial({
+          color: '#dcdcdc'
+        });
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
+      } else {
+        const mat = new THREE.MeshStandardMaterial({
+          color: '#cccccc',
+          roughness: 0.35,
+          metalness: 0.0
+        });
+        mesh.material = mat;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        if ('envMapIntensity' in mat) {
+          (mat as any).envMapIntensity = 0.9;
         }
       }
     });
+    
     return clone;
-  }, [gltf, error, style]);
+  }, [gltf, error, style, lineColor, fillColor]);
 
   useFrame((_, dt) => {
     const [low, mid] = audio.bands();
@@ -175,6 +159,27 @@ function ModelInner({ audio, params }: VisualProps) {
       groupRef.current.scale.setScalar(scale);
     }
   });
+
+  // 清理模型资源
+  useEffect(() => {
+    return () => {
+      if (model) {
+        model.traverse((obj) => {
+          if ((obj as THREE.Mesh).isMesh) {
+            const mesh = obj as THREE.Mesh;
+            if (mesh.geometry) mesh.geometry.dispose();
+            if (mesh.material) {
+              if (Array.isArray(mesh.material)) {
+                mesh.material.forEach((mat) => mat.dispose());
+              } else {
+                mesh.material.dispose();
+              }
+            }
+          }
+        });
+      }
+    };
+  }, [model]);
 
   if (error && stageParams?.fallback) {
     return <mesh></mesh>;

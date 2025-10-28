@@ -19,11 +19,9 @@ export const VisualRegistry: Record<string, VisualFactory> = {
   nebula: () => import('./visuals/Nebula').then((m) => m.default),
   bubbles: () => import('./visuals/Bubbles').then((m) => m.default),
   neon: () => import('./visuals/NeonGrid').then((m) => m.default),
-  nebulaTrails: () => import('./visuals/NebulaTrails').then((m) => m.default),
   caustic: () => import('./visuals/CausticSea').then((m) => m.default),
   jelly: () => import('./visuals/Jelly').then((m) => m.default),
-  model: () => import('./visuals/ModelStage').then((m) => m.default),
-  chimeBox: () => import('./visuals/ChimeMusicBox').then((m) => m.default)
+  model: () => import('./visuals/ModelStage').then((m) => m.default)
 };
 
 export type VisualID = keyof typeof VisualRegistry;
