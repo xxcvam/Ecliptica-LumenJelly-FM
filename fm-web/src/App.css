@@ -470,6 +470,31 @@ body {
     width: 120px;
 }
 
+/* 骰子随机生成按钮 */
+.seq-randomize {
+    padding: 0.45rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.seq-randomize:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(139, 92, 246, 0.35));
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: scale(1.05) rotate(10deg);
+}
+
+.seq-randomize:active {
+    transform: scale(0.95) rotate(-10deg);
+}
+
 .sequencer-grid {
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));

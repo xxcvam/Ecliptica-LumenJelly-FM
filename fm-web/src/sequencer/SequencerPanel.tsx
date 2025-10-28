@@ -28,6 +28,7 @@ interface SequencerPanelProps {
   onModeChange: (mode: SequencerMode) => void;
   onRootChange: (value: number) => void;
   onScaleChange: (key: keyof typeof SCALE_MAP) => void;
+  onRandomize: () => void;
 }
 
 const STEP_LENGTH_OPTIONS = [
@@ -75,7 +76,8 @@ export function SequencerPanel({
   onLoopLengthChange,
   onModeChange,
   onRootChange,
-  onScaleChange
+  onScaleChange,
+  onRandomize
 }: SequencerPanelProps) {
   const scale = SCALE_MAP[scaleKey];
 
@@ -184,6 +186,13 @@ export function SequencerPanel({
               ))}
             </select>
           </label>
+          <button 
+            className="seq-randomize" 
+            onClick={onRandomize}
+            title="智能随机生成序列"
+          >
+            🎲
+          </button>
         </div>
       </header>
 

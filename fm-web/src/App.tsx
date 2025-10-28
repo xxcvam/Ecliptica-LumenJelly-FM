@@ -312,6 +312,90 @@ function App() {
     setSequencerLoopLength(clamped);
   };
 
+  // 智能随机生成音序器序列
+  const handleSequencerRandomize = useCallback(() => {
+    const scale = SCALE_MAP[sequencerScaleKey];
+    const scaleLength = scale.intervals.length;
+    
+    // 根据音阶特性决定生成策略
+    const is5Note = scaleLength <= 5; // 五声音阶
+    const isSymmetric = ['wholeTone', 'diminished', 'augmented', 'octatonic'].includes(sequencerScaleKey);
+    const isExotic = ['arabic', 'gypsy', 'spanish', 'persian', 'jewish'].includes(sequencerScaleKey);
+    const isJazzy = ['bebop', 'dorian', 'mixolydian'].includes(sequencerScaleKey);
+    
+    // 根据音阶类型调整音域范围
+    let pitchRange = 12; // 默认一个八度
+    if (is5Note) pitchRange = 14; // 五声音阶跨度稍大
+    if (isSymmetric) pitchRange = 8; // 对称音阶更紧凑
+    if (isExotic) pitchRange = 10; // 民族音阶适中
+    
+    // 随机生成开关密度（30%-75%）
+    const density = 0.3 + Math.random() * 0.45;
+    
+    // 生成节奏模式
+    const patterns = [
+      [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], // 4/4 基础
+      [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0], // 切分
+      [1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0], // 跳跃
+      [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0], // 均匀
+      [1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0], // 密集
+    ];
+    const basePattern = patterns[Math.floor(Math.random() * patterns.length)];
+    
+    // 生成旋律轮廓
+    let currentPitch = Math.floor(Math.random() * 5) - 2; // 从中间开始
+    const newSteps: SequencerStep[] = [];
+    
+    for (let i = 0; i < 16; i++) {
+      // 决定是否激活此步
+      const shouldActivate = basePattern[i] === 1 || Math.random() < density;
+      
+      // 生成音高（随机游走，但有倾向性）
+      if (i % 4 === 0 || Math.random() < 0.3) {
+        // 每4步或随机30%概率做较大跳跃
+        const jump = Math.floor(Math.random() * 7) - 3;
+        currentPitch += jump;
+      } else {
+        // 小幅度移动
+        currentPitch += Math.random() < 0.5 ? scale.intervals[Math.floor(Math.random() * Math.min(3, scaleLength))] : 0;
+      }
+      
+      // 限制音高范围
+      currentPitch = Math.max(-pitchRange, Math.min(pitchRange, currentPitch));
+      
+      // 生成力度（有起伏，避免极端）
+      let velocity = 60 + Math.floor(Math.random() * 50); // 60-110
+      if (i % 4 === 0) velocity = Math.min(120, velocity + 10); // 强拍稍强
+      if (isJazzy) velocity = 70 + Math.floor(Math.random() * 30); // 爵士更均匀
+      
+      // 生成门限（避免太短或太长）
+      let gate = 0.4 + Math.random() * 0.5; // 0.4-0.9
+      if (is5Note) gate = 0.6 + Math.random() * 0.3; // 五声音阶稍长
+      if (isSymmetric) gate = 0.3 + Math.random() * 0.4; // 对称音阶可以更短
+      
+      // 生成概率（大多数100%，偶尔有变化）
+      const probability = Math.random() < 0.85 ? 1 : 0.6 + Math.random() * 0.4;
+      
+      // 生成连奏（偶尔使用）
+      let ratchet = 1;
+      if (shouldActivate && Math.random() < 0.1) {
+        ratchet = Math.random() < 0.7 ? 2 : 4; // 10%概率，大多是2连音
+      }
+      
+      newSteps.push({
+        on: shouldActivate,
+        pitch: currentPitch,
+        velocity: Math.round(velocity),
+        gate: Number(gate.toFixed(2)),
+        probability: Number(probability.toFixed(2)),
+        ratchet
+      });
+    }
+    
+    setSequencerSteps(newSteps);
+    setSelectedStepIndex(null);
+  }, [sequencerScaleKey]);
+
   // 参数变化时更新
   useEffect(() => {
     if (isAudioReady) {
@@ -543,6 +627,7 @@ function App() {
             onModeChange={setSequencerMode}
             onRootChange={setSequencerRoot}
             onScaleChange={setSequencerScaleKey}
+            onRandomize={handleSequencerRandomize}
           />
 
           <div className="panel keyboard-panel">
