@@ -711,6 +711,8 @@ body {
     position: relative;
     overflow: hidden;
     cursor: pointer;
+    /* 默认去色 */
+    filter: grayscale(1) brightness(0.6) contrast(0.8);
 }
 
 
@@ -720,44 +722,135 @@ body {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient( 180deg, transparent 0%, rgba(0, 0, 0, 0.15) 70%, rgba(0, 0, 0, 0.4) 100%);
+    background: linear-gradient( 180deg, transparent 0%, rgba(0, 0, 0, 0.3) 70%, rgba(0, 0, 0, 0.6) 100%);
     pointer-events: none;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease;
+    z-index: 1;
 }
 
 
-/* 悬停时的光晕效果 */
+/* 边框流光渐变 - 默认隐藏 */
 
 .preset-banner-preview::before {
     content: '';
     position: absolute;
-    inset: -2px;
+    inset: -3px;
     border-radius: 10px;
-    padding: 2px;
-    background: linear-gradient( 135deg, rgba(139, 92, 246, 0), rgba(139, 92, 246, 0.6), rgba(59, 130, 246, 0.6), rgba(139, 92, 246, 0));
+    padding: 3px;
+    background: linear-gradient(
+        60deg,
+        #0ff 0%,
+        #f0f 25%,
+        #0ff 50%,
+        #f0f 75%,
+        #0ff 100%
+    );
+    background-size: 300% 100%;
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease;
     pointer-events: none;
+    z-index: 3;
 }
 
 
-/* 鼠标悬停特效 */
+/* 霓虹扫光层 */
+
+.preset-dropdown-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(0, 255, 255, 0) 30%,
+        rgba(0, 255, 255, 0.6) 50%,
+        rgba(255, 0, 255, 0.6) 51%,
+        rgba(255, 0, 255, 0) 70%,
+        transparent 100%
+    );
+    z-index: 2;
+    pointer-events: none;
+    transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 10px;
+    mix-blend-mode: screen;
+}
+
+
+/* 鼠标悬停：色彩爆发 + 特效 */
 
 .preset-dropdown-container:hover .preset-banner-preview {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    filter: brightness(1.1) saturate(1.15);
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(139, 92, 246, 0.4),
+        0 0 60px rgba(59, 130, 246, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    /* 去除去色，增强色彩 */
+    filter: grayscale(0) brightness(1.2) saturate(1.4) contrast(1.1);
 }
+
+
+/* 边框流光动画启动 */
 
 .preset-dropdown-container:hover .preset-banner-preview::before {
     opacity: 1;
+    animation: flowBorder 2s linear infinite;
 }
 
+
+/* 霓虹扫光触发 */
+
+.preset-dropdown-container:hover::before {
+    left: 100%;
+}
+
+
+/* 底部遮罩降低 */
+
 .preset-dropdown-container:hover .preset-banner-preview::after {
-    opacity: 0.7;
+    opacity: 0.4;
+}
+
+
+/* 边框流光动画 */
+
+@keyframes flowBorder {
+    0% { 
+        background-position: 0% 0; 
+    }
+    100% { 
+        background-position: 300% 0; 
+    }
+}
+
+
+/* 能量脉冲动画（可选，增强视觉冲击） */
+
+.preset-dropdown-container:hover .preset-banner-preview {
+    animation: energyPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes energyPulse {
+    0%, 100% {
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.5),
+            0 0 30px rgba(139, 92, 246, 0.4),
+            0 0 60px rgba(59, 130, 246, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.5),
+            0 0 40px rgba(139, 92, 246, 0.6),
+            0 0 80px rgba(59, 130, 246, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
 }
 
 
