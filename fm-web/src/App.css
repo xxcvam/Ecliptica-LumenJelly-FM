@@ -48,31 +48,29 @@
     /* 浅色主题预设选择器 */
     .preset-banner-preview {
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        /* 浅色主题默认也去色 */
+        filter: grayscale(1) brightness(0.8) contrast(0.85);
     }
-    
     .preset-dropdown-container:hover .preset-banner-preview {
         box-shadow: 
-            0 10px 24px rgba(0, 0, 0, 0.18),
-            0 0 20px rgba(139, 92, 246, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            0 15px 35px rgba(0, 0, 0, 0.25),
+            0 0 25px rgba(139, 92, 246, 0.3),
+            0 0 50px rgba(59, 130, 246, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        /* 浅色主题也恢复色彩 */
+        filter: grayscale(0) brightness(1.15) saturate(1.35) contrast(1.05);
     }
-    
     .preset-dropdown {
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 247, 245, 0.98));
         border-color: rgba(148, 163, 184, 0.35);
         color: var(--text-primary);
         background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%230f172a' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
     }
-    
     .preset-dropdown:hover {
         border-color: rgba(139, 92, 246, 0.6);
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 247, 245, 1));
-        box-shadow: 
-            0 4px 12px rgba(99, 102, 241, 0.2),
-            0 0 16px rgba(139, 92, 246, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2), 0 0 16px rgba(139, 92, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
-    
     .preset-dropdown option {
         background: #fafaf9;
         color: #0f172a;
@@ -698,6 +696,9 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    /* 确保扫光效果不溢出 */
+    overflow: hidden;
+    border-radius: 10px;
 }
 
 
@@ -716,7 +717,9 @@ body {
     cursor: pointer;
 }
 
+
 /* 底部渐变遮罩 */
+
 .preset-banner-preview::after {
     content: '';
     position: absolute;
@@ -726,20 +729,16 @@ body {
     transition: opacity 0.4s ease;
 }
 
+
 /* 悬停时的光晕效果 */
+
 .preset-banner-preview::before {
     content: '';
     position: absolute;
     inset: -2px;
     border-radius: 10px;
     padding: 2px;
-    background: linear-gradient(
-        135deg,
-        rgba(139, 92, 246, 0),
-        rgba(139, 92, 246, 0.6),
-        rgba(59, 130, 246, 0.6),
-        rgba(139, 92, 246, 0)
-    );
+    background: linear-gradient( 135deg, rgba(139, 92, 246, 0), rgba(139, 92, 246, 0.6), rgba(59, 130, 246, 0.6), rgba(139, 92, 246, 0));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -748,13 +747,12 @@ body {
     pointer-events: none;
 }
 
+
 /* 鼠标悬停特效 */
+
 .preset-dropdown-container:hover .preset-banner-preview {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 
-        0 12px 28px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(139, 92, 246, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     filter: brightness(1.1) saturate(1.15);
 }
 
@@ -791,27 +789,19 @@ body {
 .preset-dropdown:hover {
     border-color: rgba(139, 92, 246, 0.7);
     background: linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.95));
-    box-shadow: 
-        0 4px 12px rgba(99, 102, 241, 0.25),
-        0 0 16px rgba(139, 92, 246, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25), 0 0 16px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     transform: translateY(-1px);
 }
 
 .preset-dropdown:active {
     transform: translateY(0);
-    box-shadow: 
-        0 2px 8px rgba(99, 102, 241, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .preset-dropdown:focus {
     outline: none;
     border-color: rgba(139, 92, 246, 0.8);
-    box-shadow: 
-        0 0 0 3px rgba(99, 102, 241, 0.2),
-        0 4px 16px rgba(99, 102, 241, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 4px 16px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .preset-dropdown option {
