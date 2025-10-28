@@ -52,11 +52,7 @@
         filter: grayscale(1) brightness(0.8) contrast(0.85);
     }
     .preset-dropdown-container:hover .preset-banner-preview {
-        box-shadow: 
-            0 15px 35px rgba(0, 0, 0, 0.25),
-            0 0 25px rgba(139, 92, 246, 0.3),
-            0 0 50px rgba(59, 130, 246, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25), 0 0 25px rgba(139, 92, 246, 0.3), 0 0 50px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
         /* 浅色主题也恢复色彩 */
         filter: grayscale(0) brightness(1.15) saturate(1.35) contrast(1.05);
     }
