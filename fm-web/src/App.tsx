@@ -760,8 +760,8 @@ function App() {
 
           <div className="panel">
             <h2>Delay 延迟</h2>
-            <div className="delay-sync-controls" style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9em' }}>
+            <div className="delay-sync-controls">
+              <label>
                 <input
                   type="checkbox"
                   checked={delayTimeSync}
@@ -773,7 +773,6 @@ function App() {
                 <select
                   value={delayTimeNote}
                   onChange={(e) => setDelayTimeNote(e.target.value)}
-                  style={{ marginTop: '8px', padding: '4px', width: '100%' }}
                 >
                   <option value="1/1">1/1 (全音符)</option>
                   <option value="1/2">1/2 (二分音符)</option>

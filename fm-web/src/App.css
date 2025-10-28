@@ -54,6 +54,18 @@
     .preset-menu-item.active {
         color: #0f172a;
     }
+    .delay-sync-controls {
+        background: rgba(245, 247, 255, 0.85);
+        border-color: rgba(148, 163, 184, 0.25);
+    }
+    .delay-sync-controls select {
+        background: rgba(236, 242, 255, 0.9);
+        border-color: rgba(148, 163, 184, 0.28);
+    }
+    .lfo-target-select select {
+        background: rgba(236, 242, 255, 0.9);
+        border-color: rgba(148, 163, 184, 0.28);
+    }
     .adsr-preview-bg {
         fill: rgba(226, 232, 240, 0.85);
     }
@@ -682,6 +694,65 @@ body {
     padding: 0.5rem 0.75rem;
     border-radius: 8px;
     cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.lfo-target-select select:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.lfo-target-select select:focus {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.7);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* Delay Sync Controls - 与预设菜单保持一致的样式 */
+.delay-sync-controls {
+    padding: 0.75rem 0.85rem;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.delay-sync-controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.delay-sync-controls input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.delay-sync-controls select {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.88rem;
+}
+
+.delay-sync-controls select:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.delay-sync-controls select:focus {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.7);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .keyboard-panel {
