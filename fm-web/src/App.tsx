@@ -712,33 +712,28 @@ function App() {
       </div>
           )}
 
-          <div className="panel">
-            <h2>预设菜单</h2>
-            <details className="preset-menu" open>
-              <summary>
-                <span className="preset-current-name">{currentPreset.name}</span>
-                <span className="preset-current-tagline">{currentPreset.tagline}</span>
-              </summary>
-              <ul>
-                {factoryPresets.map((preset, index) => {
-                  const bannerUrl = PRESET_VISUAL_MAP[preset.name]?.banner;
-                  return (
-                    <li key={preset.name}>
-                      <button
-                        className={`preset-menu-item ${index === currentPresetIndex ? 'active' : ''}`}
-                        onClick={() => handlePresetChange(index)}
-                        style={bannerUrl ? {
-                          '--banner-url': `url(${bannerUrl})`
-                        } as React.CSSProperties : undefined}
-                      >
-                        <span className="preset-menu-title">{preset.name}</span>
-                        <span className="preset-menu-desc">{preset.tagline}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </details>
+          <div className="panel preset-selector-panel">
+            <h2>预设</h2>
+            <div className="preset-dropdown-container">
+              <div 
+                className="preset-banner-preview"
+                style={{
+                  backgroundImage: 'url(/banners/3.png)',
+                  filter: PRESET_VISUAL_MAP[currentPreset.name]?.bannerFilter || 'none'
+                }}
+              />
+              <select 
+                className="preset-dropdown"
+                value={currentPresetIndex}
+                onChange={(e) => handlePresetChange(Number(e.target.value))}
+              >
+                {factoryPresets.map((preset, index) => (
+                  <option key={preset.name} value={index}>
+                    {preset.name} — {preset.tagline}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="panel">
