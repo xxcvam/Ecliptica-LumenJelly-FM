@@ -85,7 +85,12 @@
         font-weight: 500;
     }
     .keyboard-guide-tip {
-        color: rgba(51, 65, 85, 0.8);
+        color: #334155;
+        font-weight: 500;
+    }
+    .seq-step-meta {
+        color: #64748b;
+        font-weight: 500;
     }
     .seq-play {
         background: linear-gradient(135deg, rgba(139, 92, 246, 0.88), rgba(59, 130, 246, 0.85));
@@ -110,6 +115,15 @@
     .sequencer-editor label {
         color: #334155;
         font-weight: 500;
+    }
+    .sequencer-editor-grid select {
+        background: rgba(255, 254, 252, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        color: #0f172a;
+        font-weight: 500;
+    }
+    .sequencer-editor-grid select:hover {
+        border-color: rgba(139, 92, 246, 0.45);
     }
     .seq-toggle {
         background: rgba(241, 245, 249, 0.8);
