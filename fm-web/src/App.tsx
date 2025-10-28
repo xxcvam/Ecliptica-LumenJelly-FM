@@ -720,17 +720,23 @@ function App() {
                 <span className="preset-current-tagline">{currentPreset.tagline}</span>
               </summary>
               <ul>
-                {factoryPresets.map((preset, index) => (
-                  <li key={preset.name}>
-                    <button
-                      className={`preset-menu-item ${index === currentPresetIndex ? 'active' : ''}`}
-                      onClick={() => handlePresetChange(index)}
-                    >
-                      <span className="preset-menu-title">{preset.name}</span>
-                      <span className="preset-menu-desc">{preset.tagline}</span>
-        </button>
-                  </li>
-                ))}
+                {factoryPresets.map((preset, index) => {
+                  const bannerUrl = PRESET_VISUAL_MAP[preset.name]?.banner;
+                  return (
+                    <li key={preset.name}>
+                      <button
+                        className={`preset-menu-item ${index === currentPresetIndex ? 'active' : ''}`}
+                        onClick={() => handlePresetChange(index)}
+                        style={bannerUrl ? {
+                          '--banner-url': `url(${bannerUrl})`
+                        } as React.CSSProperties : undefined}
+                      >
+                        <span className="preset-menu-title">{preset.name}</span>
+                        <span className="preset-menu-desc">{preset.tagline}</span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </details>
           </div>

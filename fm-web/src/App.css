@@ -52,12 +52,33 @@
     .preset-menu-item {
         background: rgba(248, 247, 245, 0.95);
         color: var(--text-primary);
-        border-color: rgba(148, 163, 184, 0.22);
+        border-color: rgba(148, 163, 184, 0.25);
+    }
+    .preset-menu-item::before {
+        opacity: 0.2;
+        filter: blur(0px) saturate(1) brightness(1.1);
+    }
+    .preset-menu-item:hover {
+        border-color: rgba(139, 92, 246, 0.5);
+        box-shadow: 
+            0 20px 40px rgba(99, 102, 241, 0.2),
+            0 0 20px rgba(139, 92, 246, 0.15),
+            inset 0 1px 0 rgba(139, 92, 246, 0.1);
+    }
+    .preset-menu-item:hover::before {
+        opacity: 0.4;
     }
     .preset-menu-item.active {
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(59, 130, 246, 0.12));
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(99, 102, 241, 0.15));
         color: #5b21b6;
-        border-color: rgba(139, 92, 246, 0.35);
+        border-color: rgba(139, 92, 246, 0.45);
+        box-shadow: 
+            0 18px 35px rgba(99, 102, 241, 0.25),
+            0 0 25px rgba(139, 92, 246, 0.2),
+            inset 0 1px 0 rgba(139, 92, 246, 0.15);
+    }
+    .preset-menu-item.active::before {
+        opacity: 0.5;
     }
     .delay-sync-controls {
         background: rgba(252, 251, 249, 0.92);
@@ -715,28 +736,119 @@ body {
 .preset-menu-item {
     width: 100%;
     text-align: left;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 0.75rem;
-    border: 1px solid rgba(99, 102, 241, 0.12);
-    background: rgba(15, 23, 42, 0.55);
+    border: 2px solid rgba(99, 102, 241, 0.12);
+    background: rgba(15, 23, 42, 0.75);
     color: var(--text-primary);
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-style: preserve-3d;
+    perspective: 1000px;
 }
 
+/* Banner 背景图片 */
+.preset-menu-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: var(--banner-url);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15;
+    transition: all 0.4s ease;
+    z-index: 0;
+    filter: blur(0px) saturate(1.2);
+}
+
+/* 内容层 */
+.preset-menu-item > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* 全息光泽层 */
+.preset-menu-item::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        135deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.15) 45%,
+        rgba(255, 255, 255, 0.4) 50%,
+        rgba(255, 255, 255, 0.15) 55%,
+        transparent 70%
+    );
+    opacity: 0;
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    transition: all 0.6s ease;
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* 悬浮状态：Balatro 风格 3D 倾斜 + 光泽扫过 */
 .preset-menu-item:hover {
-    transform: translateY(-1px);
-    border-color: rgba(99, 102, 241, 0.6);
-    box-shadow: 0 12px 24px rgba(99, 102, 241, 0.25);
+    transform: translateY(-8px) scale(1.03);
+    border-color: rgba(139, 92, 246, 0.65);
+    box-shadow: 
+        0 20px 40px rgba(99, 102, 241, 0.35),
+        0 0 20px rgba(139, 92, 246, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
+.preset-menu-item:hover::before {
+    opacity: 0.35;
+    filter: blur(0px) saturate(1.5) brightness(1.1);
+    transform: scale(1.05);
+}
+
+.preset-menu-item:hover::after {
+    opacity: 1;
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+}
+
+/* 激活状态：更强的发光效果 */
 .preset-menu-item.active {
-    border-color: transparent;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.88), rgba(45, 212, 191, 0.75));
-    box-shadow: 0 14px 28px rgba(99, 102, 241, 0.3);
+    border-color: rgba(139, 92, 246, 0.8);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(139, 92, 246, 0.3));
+    box-shadow: 
+        0 18px 35px rgba(99, 102, 241, 0.4),
+        0 0 30px rgba(139, 92, 246, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+}
+
+.preset-menu-item.active::before {
+    opacity: 0.45;
+    filter: blur(0px) saturate(1.6) brightness(1.2);
+}
+
+/* 激活状态持续闪烁光泽 */
+.preset-menu-item.active::after {
+    animation: holographic-shine 3s ease-in-out infinite;
+}
+
+@keyframes holographic-shine {
+    0%, 100% {
+        opacity: 0.3;
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
 }
 
 .preset-menu-title {
