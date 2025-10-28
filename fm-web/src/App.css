@@ -707,7 +707,9 @@ body {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+
 /* Delay Sync Controls - 与预设菜单保持一致的样式 */
+
 .delay-sync-controls {
     padding: 0.75rem 0.85rem;
     border-radius: 10px;
@@ -857,7 +859,7 @@ body {
 
 .app-footer {
     margin-top: 28px;
-  text-align: center;
+    text-align: center;
     color: var(--text-secondary);
     letter-spacing: 0.06em;
     display: flex;

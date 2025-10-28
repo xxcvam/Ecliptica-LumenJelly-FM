@@ -20,9 +20,44 @@ export interface ScaleDefinition {
 }
 
 export const SCALE_MAP: Record<string, ScaleDefinition> = {
-  major: { label: 'Major (Cheerful)', intervals: [0, 2, 4, 5, 7, 9, 11] },
-  minor: { label: 'Minor (Moody)', intervals: [0, 2, 3, 5, 7, 8, 10] },
-  pentatonic: { label: 'Pentatonic (Dreamy)', intervals: [0, 2, 4, 7, 9] }
+  // 西方传统音阶
+  major: { label: 'Major 大调 (明亮)', intervals: [0, 2, 4, 5, 7, 9, 11] },
+  minor: { label: 'Minor 小调 (忧郁)', intervals: [0, 2, 3, 5, 7, 8, 10] },
+  harmonicMinor: { label: 'Harmonic Minor 和声小调 (戏剧性)', intervals: [0, 2, 3, 5, 7, 8, 11] },
+  melodicMinor: { label: 'Melodic Minor 旋律小调 (爵士)', intervals: [0, 2, 3, 5, 7, 9, 11] },
+  dorian: { label: 'Dorian 多利亚 (爵士/民谣)', intervals: [0, 2, 3, 5, 7, 9, 10] },
+  phrygian: { label: 'Phrygian 弗里吉亚 (西班牙/暗黑)', intervals: [0, 1, 3, 5, 7, 8, 10] },
+  lydian: { label: 'Lydian 利底亚 (梦幻/飘渺)', intervals: [0, 2, 4, 6, 7, 9, 11] },
+  mixolydian: { label: 'Mixolydian 混合利底亚 (摇滚/蓝调)', intervals: [0, 2, 4, 5, 7, 9, 10] },
+  
+  // 五声音阶
+  pentatonic: { label: 'Pentatonic 五声音阶 (通用)', intervals: [0, 2, 4, 7, 9] },
+  pentatonicMinor: { label: 'Pentatonic Minor 小调五声 (布鲁斯)', intervals: [0, 3, 5, 7, 10] },
+  
+  // 民族音乐音阶
+  japanese: { label: 'Japanese 日本 (都节调式)', intervals: [0, 1, 5, 7, 8] },
+  chinesePenta: { label: 'Chinese 中国五声 (宫商角徵羽)', intervals: [0, 2, 4, 7, 9] },
+  hirajoshi: { label: 'Hirajoshi 日本平调子 (传统)', intervals: [0, 2, 3, 7, 8] },
+  inSen: { label: 'In Sen 日本阴旋 (神秘)', intervals: [0, 1, 5, 7, 10] },
+  arabic: { label: 'Arabic 阿拉伯 (Hijaz)', intervals: [0, 1, 4, 5, 7, 8, 11] },
+  gypsy: { label: 'Gypsy 吉普赛 (匈牙利)', intervals: [0, 2, 3, 6, 7, 8, 11] },
+  spanish: { label: 'Spanish 西班牙 (Phrygian Dominant)', intervals: [0, 1, 4, 5, 7, 8, 10] },
+  jewish: { label: 'Jewish 犹太 (Ahava Rabboh)', intervals: [0, 1, 4, 5, 7, 8, 10] },
+  persian: { label: 'Persian 波斯 (神秘)', intervals: [0, 1, 4, 5, 6, 8, 11] },
+  
+  // 特殊音阶
+  blues: { label: 'Blues 布鲁斯 (经典)', intervals: [0, 3, 5, 6, 7, 10] },
+  wholeTone: { label: 'Whole Tone 全音阶 (印象派)', intervals: [0, 2, 4, 6, 8, 10] },
+  chromatic: { label: 'Chromatic 半音阶 (全部音)', intervals: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+  diminished: { label: 'Diminished 减音阶 (对称)', intervals: [0, 2, 3, 5, 6, 8, 9, 11] },
+  augmented: { label: 'Augmented 增音阶 (六声)', intervals: [0, 3, 4, 7, 8, 11] },
+  prometheus: { label: 'Prometheus 普罗米修斯 (神秘)', intervals: [0, 2, 4, 6, 9, 10] },
+  tritone: { label: 'Tritone 三全音 (紧张)', intervals: [0, 1, 4, 6, 7, 10] },
+  
+  // 现代/实验音阶
+  octatonic: { label: 'Octatonic 八声音阶 (爵士)', intervals: [0, 1, 3, 4, 6, 7, 9, 10] },
+  bebop: { label: 'Bebop 比波普 (爵士)', intervals: [0, 2, 4, 5, 7, 9, 10, 11] },
+  enigmatic: { label: 'Enigmatic 谜语音阶 (奇特)', intervals: [0, 1, 4, 6, 8, 10, 11] }
 };
 
 export function quantizePitch(root: number, pitchOffset: number, scale: number[]): number {
