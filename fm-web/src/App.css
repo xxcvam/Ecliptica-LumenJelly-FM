@@ -18,8 +18,8 @@
         --secondary-color: #0891b2;
         --bg-dark: #faf8f5;
         --bg-panel: hsla(30, 40%, 98%, 0.92);
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
+        --text-primary: #0f172a;
+        --text-secondary: #334155;
         --border-color: hsla(220, 20%, 75%, 0.25);
         --shadow-xl: 0 12px 32px rgba(15, 23, 42, 0.08);
     }
@@ -32,7 +32,8 @@
         box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
     }
     .visual-overlay {
-        color: rgba(30, 41, 59, 0.75);
+        color: rgba(15, 23, 42, 0.85);
+        font-weight: 500;
         background: linear-gradient(160deg, rgba(255, 253, 250, 0.88), rgba(249, 247, 242, 0.82));
     }
     .panel {
@@ -80,10 +81,11 @@
     .keyboard-guide-item kbd {
         background: rgba(243, 242, 240, 0.95);
         border-color: rgba(148, 163, 184, 0.28);
-        color: #334155;
+        color: #1e293b;
+        font-weight: 500;
     }
     .keyboard-guide-tip {
-        color: rgba(100, 116, 139, 0.75);
+        color: rgba(51, 65, 85, 0.8);
     }
     .seq-play {
         background: linear-gradient(135deg, rgba(139, 92, 246, 0.88), rgba(59, 130, 246, 0.85));
@@ -93,21 +95,27 @@
     .seq-step {
         background: rgba(248, 247, 245, 0.95);
         border-color: rgba(148, 163, 184, 0.22);
-        color: #64748b;
+        color: #475569;
     }
     .seq-step.on {
         background: rgba(241, 245, 249, 1);
-        color: #1e293b;
+        color: #0f172a;
         border-color: rgba(99, 102, 241, 0.4);
+        font-weight: 600;
     }
     .sequencer-editor {
         background: rgba(250, 249, 247, 0.95);
         border-color: rgba(148, 163, 184, 0.25);
     }
+    .sequencer-editor label {
+        color: #334155;
+        font-weight: 500;
+    }
     .seq-toggle {
         background: rgba(241, 245, 249, 0.8);
         border-color: rgba(148, 163, 184, 0.28);
-        color: #475569;
+        color: #334155;
+        font-weight: 500;
     }
     .seq-toggle.enabled {
         background: rgba(139, 92, 246, 0.15);
@@ -134,6 +142,10 @@
     .key-white {
         background: linear-gradient(180deg, #fafaf9, #f5f5f4);
         border: 1px solid rgba(100, 116, 139, 0.25);
+    }
+    .key-white .key-label {
+        color: #1e293b;
+        font-weight: 600;
     }
     .key-white:active,
     .key-white:hover,
