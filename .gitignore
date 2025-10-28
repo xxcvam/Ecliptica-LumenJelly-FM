@@ -52,3 +52,4 @@ fm-web/public/models/default/*.gltf
 !QUICKSTART.md
 !todo.md
 
+.vercel
