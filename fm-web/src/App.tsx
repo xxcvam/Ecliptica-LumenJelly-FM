@@ -26,7 +26,6 @@ import { PRESET_VISUAL_MAP } from './presets/map';
 import { VisualPanel } from './vis/VisualPanel';
 import { noteBus, freqToMidi } from './vis/events/bus';
 import { AdsrPreview } from './ui/AdsrPreview';
-import { ModelUploader } from './ui/ModelUploader';
 import { SequencerPanel } from './sequencer/SequencerPanel';
 import { StepSequencer, SCALE_MAP } from './sequencer/StepSequencer';
 import type { SequencerMode, SequencerStep } from './sequencer/StepSequencer';
@@ -923,10 +922,6 @@ function App() {
               step={0.01}
               onChange={setMasterVolume}
             />
-          </div>
-
-          <div className="panel">
-            <ModelUploader onModelSelect={(src) => console.log('Model selected:', src)} />
           </div>
         </aside>
       </main>
