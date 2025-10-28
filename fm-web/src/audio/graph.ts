@@ -6,6 +6,7 @@ let splitterNode: ChannelSplitterNode | null = null;
 let mergerNode: ChannelMergerNode | null = null;
 let delayLeft: DelayNode | null = null;
 let delayRight: DelayNode | null = null;
+let predelayNode: DelayNode | null = null;
 let feedbackLeft: GainNode | null = null;
 let feedbackRight: GainNode | null = null;
 let wetGain: GainNode | null = null;
@@ -17,11 +18,17 @@ let externalSource: MediaStreamAudioSourceNode | null = null;
 let externalMonitorGain: GainNode | null = null;
 let externalAnalysisGain: GainNode | null = null;
 
+// LFO for delay time modulation
+let delayLfoOscillator: OscillatorNode | null = null;
+let delayLfoGain: GainNode | null = null;
+let delayLfoActive = false;
+
 // Delay 参数
 let currentDelay = {
   time: 0.3,      // 300ms
   feedback: 0.3,
-  wet: 0.3
+  wet: 0.3,
+  predelay: 0     // predelay 时间 (ms)
 };
 
 export async function initAudio(): Promise<void> {
@@ -42,9 +49,12 @@ export async function initAudio(): Promise<void> {
       outputChannelCount: [2]
     });
     
-    // 创建 Delay 效果链（Ping-Pong）
+    // 创建 Delay 效果链（Ping-Pong + Predelay）
     splitterNode = audioContext.createChannelSplitter(2);
     mergerNode = audioContext.createChannelMerger(2);
+    
+    predelayNode = audioContext.createDelay(0.1);  // 最大 100ms predelay
+    predelayNode.delayTime.value = currentDelay.predelay / 1000;
     
     delayLeft = audioContext.createDelay(1.2);
     delayRight = audioContext.createDelay(1.2);
@@ -78,8 +88,9 @@ export async function initAudio(): Promise<void> {
     workletNode.connect(dryGain);
     dryGain.connect(masterGain);
     
-    // Worklet -> Splitter
-    workletNode.connect(splitterNode);
+    // Worklet -> Predelay -> Splitter
+    workletNode.connect(predelayNode);
+    predelayNode.connect(splitterNode);
     
     // 左右通道分别进入 Delay
     splitterNode.connect(delayLeft, 0);
@@ -169,8 +180,8 @@ export function setParameterAt(key: string, value: number, time: number): void {
   });
 }
 
-export function setDelay(timeMs: number, feedback: number, wet: number): void {
-  if (!delayLeft || !delayRight || !feedbackLeft || !feedbackRight || !wetGain || !dryGain) return;
+export function setDelay(timeMs: number, feedback: number, wet: number, predelayMs = 0): void {
+  if (!delayLeft || !delayRight || !feedbackLeft || !feedbackRight || !wetGain || !dryGain || !predelayNode) return;
   
   // 安全限制：禁止 wet=1 && feedback>0.7
   if (wet >= 0.99 && feedback > 0.7) {
@@ -182,6 +193,10 @@ export function setDelay(timeMs: number, feedback: number, wet: number): void {
   const timeSeconds = Math.min(1.2, Math.max(0.03, timeMs / 1000));
   delayLeft.delayTime.setTargetAtTime(timeSeconds, audioContext!.currentTime, 0.01);
   delayRight.delayTime.setTargetAtTime(timeSeconds, audioContext!.currentTime, 0.01);
+  
+  // 更新 Predelay
+  const predelaySeconds = Math.min(0.1, Math.max(0, predelayMs / 1000));
+  predelayNode.delayTime.setTargetAtTime(predelaySeconds, audioContext!.currentTime, 0.01);
   
   const safeFeedback = Math.min(0.8, Math.max(0, feedback));
   feedbackLeft.gain.setTargetAtTime(
@@ -198,7 +213,78 @@ export function setDelay(timeMs: number, feedback: number, wet: number): void {
   wetGain.gain.setTargetAtTime(wet, audioContext!.currentTime, 0.01);
   dryGain.gain.setTargetAtTime(1 - wet, audioContext!.currentTime, 0.01);
   
-  currentDelay = { time: timeSeconds, feedback: safeFeedback, wet };
+  currentDelay = { time: timeSeconds, feedback: safeFeedback, wet, predelay: predelayMs };
+}
+
+// 获取 delayLeft 节点用于 LFO 调制
+export function getDelayLeftNode(): DelayNode | null {
+  return delayLeft;
+}
+
+export function getDelayRightNode(): DelayNode | null {
+  return delayRight;
+}
+
+// 启用/禁用 delay time 的 LFO 调制
+export function setDelayLfo(enabled: boolean, rate: number, depth: number, baseTime: number): void {
+  if (!audioContext || !delayLeft || !delayRight) return;
+
+  // 清理旧的 LFO
+  if (delayLfoOscillator) {
+    delayLfoOscillator.stop();
+    delayLfoOscillator.disconnect();
+    delayLfoOscillator = null;
+  }
+  if (delayLfoGain) {
+    delayLfoGain.disconnect();
+    delayLfoGain = null;
+  }
+
+  delayLfoActive = enabled;
+
+  if (!enabled) {
+    // 恢复原始 delay time
+    delayLeft.delayTime.cancelScheduledValues(audioContext.currentTime);
+    delayRight.delayTime.cancelScheduledValues(audioContext.currentTime);
+    delayLeft.delayTime.setTargetAtTime(baseTime / 1000, audioContext.currentTime, 0.01);
+    delayRight.delayTime.setTargetAtTime(baseTime / 1000, audioContext.currentTime, 0.01);
+    return;
+  }
+
+  // 创建新的 LFO
+  delayLfoOscillator = audioContext.createOscillator();
+  delayLfoGain = audioContext.createGain();
+
+  delayLfoOscillator.type = 'sine';
+  delayLfoOscillator.frequency.value = rate;
+
+  // LFO 深度：depth 控制调制范围（相对于基础时间的百分比）
+  const modulationAmount = (baseTime / 1000) * depth * 0.5; // 最大 ±50% 调制
+  delayLfoGain.gain.value = modulationAmount;
+
+  // 连接 LFO 到 delay time 参数
+  delayLfoOscillator.connect(delayLfoGain);
+  delayLfoGain.connect(delayLeft.delayTime);
+  delayLfoGain.connect(delayRight.delayTime);
+
+  // 设置基础 delay time
+  delayLeft.delayTime.setTargetAtTime(baseTime / 1000, audioContext.currentTime, 0.01);
+  delayRight.delayTime.setTargetAtTime(baseTime / 1000, audioContext.currentTime, 0.01);
+
+  delayLfoOscillator.start();
+}
+
+// 更新 delay LFO 参数（不重新创建振荡器）
+export function updateDelayLfo(rate: number, depth: number, baseTime: number): void {
+  if (!delayLfoActive || !delayLfoOscillator || !delayLfoGain || !audioContext || !delayLeft || !delayRight) return;
+
+  delayLfoOscillator.frequency.setTargetAtTime(rate, audioContext.currentTime, 0.01);
+  
+  const modulationAmount = (baseTime / 1000) * depth * 0.5;
+  delayLfoGain.gain.setTargetAtTime(modulationAmount, audioContext.currentTime, 0.01);
+
+  delayLeft.delayTime.setTargetAtTime(baseTime / 1000, audioContext.currentTime, 0.01);
+  delayRight.delayTime.setTargetAtTime(baseTime / 1000, audioContext.currentTime, 0.01);
 }
 
 export function setMasterGain(value: number): void {

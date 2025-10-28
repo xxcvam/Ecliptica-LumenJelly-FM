@@ -12,10 +12,13 @@ export interface Preset {
     releaseTime: number;
     lfoRate: number;
     lfoDepth: number;
-    lfoTarget: 'pitch' | 'amp' | 'fmIndex' | 'modRatio';
+    lfoTarget: 'pitch' | 'amp' | 'fmIndex' | 'modRatio' | 'delayTime';
     delayTime: number;
+    delayTimeSync: boolean;  // 是否同步到 BPM
+    delayTimeNote: string;   // 音符时值: '1/4', '1/8', '1/16', '1/8T', '1/16T' 等
     delayFeedback: number;
     delayWet: number;
+    predelay: number;        // predelay 时间 (ms)
   };
 }
 
@@ -35,8 +38,11 @@ export const factoryPresets: Preset[] = [
       lfoDepth: 0.15,
       lfoTarget: 'amp',
       delayTime: 450,
+      delayTimeSync: false,
+      delayTimeNote: '1/8',
       delayFeedback: 0.6,
-      delayWet: 0.45
+      delayWet: 0.45,
+      predelay: 0
     }
   },
   {
@@ -54,8 +60,11 @@ export const factoryPresets: Preset[] = [
       lfoDepth: 0.8,
       lfoTarget: 'fmIndex',
       delayTime: 30,
+      delayTimeSync: false,
+      delayTimeNote: '1/16',
       delayFeedback: 0.80,
-      delayWet: 1
+      delayWet: 1,
+      predelay: 0
     }
   },
   {
@@ -73,8 +82,11 @@ export const factoryPresets: Preset[] = [
       lfoDepth: 0.06,
       lfoTarget: 'pitch',
       delayTime: 120,
+      delayTimeSync: false,
+      delayTimeNote: '1/16',
       delayFeedback: 0.18,
-      delayWet: 0.6
+      delayWet: 0.6,
+      predelay: 0
     }
   },
   {
@@ -92,8 +104,11 @@ export const factoryPresets: Preset[] = [
       lfoDepth: 0.25,
       lfoTarget: 'fmIndex',
       delayTime: 90,
+      delayTimeSync: false,
+      delayTimeNote: '1/16',
       delayFeedback: 0.22,
-      delayWet: 0.18
+      delayWet: 0.18,
+      predelay: 0
     }
   },
   {
@@ -111,8 +126,11 @@ export const factoryPresets: Preset[] = [
       lfoDepth: 0.85,
       lfoTarget: 'modRatio',
       delayTime: 220,
+      delayTimeSync: false,
+      delayTimeNote: '1/8',
       delayFeedback: 0.15,
-      delayWet: 1
+      delayWet: 1,
+      predelay: 0
     }
   },
 ];
@@ -129,5 +147,22 @@ export const parameterBounds = {
   lfoDepth: { min: 0, max: 1 },
   delayTime: { min: 30, max: 600 },
   delayFeedback: { min: 0, max: 0.8 },
-  delayWet: { min: 0, max: 1 }
+  delayWet: { min: 0, max: 1 },
+  predelay: { min: 0, max: 100 }
+};
+
+// Delay 时间音符时值到比例的映射
+export const delayTimeNoteValues: Record<string, number> = {
+  '1/1': 4.0,    // 全音符
+  '1/2': 2.0,    // 二分音符
+  '1/4': 1.0,    // 四分音符
+  '1/8': 0.5,    // 八分音符
+  '1/16': 0.25,  // 十六分音符
+  '1/32': 0.125, // 三十二分音符
+  '1/4T': 2/3,   // 四分音符三连音
+  '1/8T': 1/3,   // 八分音符三连音
+  '1/16T': 1/6,  // 十六分音符三连音
+  '1/4.': 1.5,   // 附点四分音符
+  '1/8.': 0.75,  // 附点八分音符
+  '1/16.': 0.375 // 附点十六分音符
 };

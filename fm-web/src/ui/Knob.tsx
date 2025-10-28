@@ -9,6 +9,7 @@ interface KnobProps {
   step?: number;
   onChange: (value: number) => void;
   unit?: string;
+  disabled?: boolean;
 }
 
 export const Knob: React.FC<KnobProps> = ({
@@ -18,18 +19,20 @@ export const Knob: React.FC<KnobProps> = ({
   max,
   step = 0.01,
   onChange,
-  unit = ''
+  unit = '',
+  disabled = false
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef(0);
   const startValueRef = useRef(0);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (disabled) return;
     e.preventDefault();
     setIsDragging(true);
     startYRef.current = e.clientY;
     startValueRef.current = value;
-  }, [value]);
+  }, [value, disabled]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
@@ -59,11 +62,12 @@ export const Knob: React.FC<KnobProps> = ({
 
   // 触摸支持
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (disabled) return;
     e.preventDefault();
     setIsDragging(true);
     startYRef.current = e.touches[0].clientY;
     startValueRef.current = value;
-  }, [value]);
+  }, [value, disabled]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
     if (!isDragging) return;
@@ -97,12 +101,13 @@ export const Knob: React.FC<KnobProps> = ({
   const angle = -135 + percentage * 270;
 
   return (
-    <div className="knob-container">
+    <div className={classNames('knob-container', { 'knob-disabled': disabled })}>
       <div className="knob-label">{label}</div>
       <div
-        className={classNames('knob', { 'knob-active': isDragging })}
+        className={classNames('knob', { 'knob-active': isDragging, 'knob-disabled': disabled })}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
+        style={{ opacity: disabled ? 0.5 : 1, cursor: disabled ? 'not-allowed' : 'ns-resize' }}
       >
         <div className="knob-circle">
           <div 

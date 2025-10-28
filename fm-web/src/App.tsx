@@ -13,12 +13,14 @@ import {
   setExternalMonitorLevel,
   noteOnAt,
   setParameterAt,
-  getAudioContext
+  getAudioContext,
+  setDelayLfo,
+  updateDelayLfo
 } from './audio/graph';
 import { Knob } from './ui/Knob';
 import { Slider } from './ui/Slider';
 import { Keyboard, keyboardShortcuts } from './ui/Keyboard';
-import { factoryPresets, parameterBounds } from './presets';
+import { factoryPresets, parameterBounds, delayTimeNoteValues } from './presets';
 import type { Preset } from './presets';
 import { PRESET_VISUAL_MAP } from './presets/map';
 import { VisualPanel } from './vis/VisualPanel';
@@ -30,7 +32,7 @@ import { StepSequencer, SCALE_MAP } from './sequencer/StepSequencer';
 import type { SequencerMode, SequencerStep } from './sequencer/StepSequencer';
 import './App.css';
 
-type LfoTarget = 'pitch' | 'amp' | 'fmIndex' | 'modRatio';
+type LfoTarget = 'pitch' | 'amp' | 'fmIndex' | 'modRatio' | 'delayTime';
 
 const createInitialSteps = (): SequencerStep[] =>
   Array.from({ length: 16 }, (_, index) => ({
@@ -68,8 +70,11 @@ function App() {
 
   // Delay
   const [delayTime, setDelayTime] = useState(300);
+  const [delayTimeSync, setDelayTimeSync] = useState(false);
+  const [delayTimeNote, setDelayTimeNote] = useState('1/8');
   const [delayFeedback, setDelayFeedback] = useState(0.3);
   const [delayWet, setDelayWet] = useState(0.3);
+  const [predelay, setPredelay] = useState(0);
 
   // Master
   const [masterVolume, setMasterVolume] = useState(0.5);
@@ -111,6 +116,17 @@ function App() {
     }
   };
 
+  // 计算实际的 delay time
+  const getActualDelayTime = useCallback(() => {
+    if (!delayTimeSync) {
+      return delayTime;
+    }
+    // BPM 同步：计算音符时值对应的毫秒数
+    const beatDuration = 60000 / sequencerBpm; // 一拍的毫秒数
+    const noteRatio = delayTimeNoteValues[delayTimeNote] || 1.0;
+    return beatDuration * noteRatio;
+  }, [delayTime, delayTimeSync, delayTimeNote, sequencerBpm]);
+
   // 更新所有参数到 AudioWorklet
   const updateAllParameters = useCallback(() => {
     if (!isAudioReady) return;
@@ -124,7 +140,8 @@ function App() {
     setParameter('lfoRate', lfoRate);
     setParameter('lfoDepth', lfoDepth);
     setParameter('lfoTarget', lfoTarget);
-    setDelay(delayTime, delayFeedback, delayWet);
+    const actualDelayTime = getActualDelayTime();
+    setDelay(actualDelayTime, delayFeedback, delayWet, predelay);
     setMasterGain(masterVolume);
   }, [
     isAudioReady,
@@ -137,9 +154,10 @@ function App() {
     lfoRate,
     lfoDepth,
     lfoTarget,
-    delayTime,
+    getActualDelayTime,
     delayFeedback,
     delayWet,
+    predelay,
     masterVolume
   ]);
 
@@ -334,26 +352,46 @@ function App() {
   useEffect(() => {
     if (isAudioReady) {
       setParameter('lfoRate', lfoRate);
+      // 更新 delay LFO
+      if (lfoTarget === 'delayTime') {
+        updateDelayLfo(lfoRate, lfoDepth, getActualDelayTime());
+      }
     }
-  }, [lfoRate, isAudioReady]);
+  }, [lfoRate, isAudioReady, lfoTarget, lfoDepth, getActualDelayTime]);
 
   useEffect(() => {
     if (isAudioReady) {
       setParameter('lfoDepth', lfoDepth);
+      // 更新 delay LFO
+      if (lfoTarget === 'delayTime') {
+        updateDelayLfo(lfoRate, lfoDepth, getActualDelayTime());
+      }
     }
-  }, [lfoDepth, isAudioReady]);
+  }, [lfoDepth, isAudioReady, lfoTarget, lfoRate, getActualDelayTime]);
 
   useEffect(() => {
     if (isAudioReady) {
       setParameter('lfoTarget', lfoTarget);
+      // 处理 delay time LFO
+      const actualDelayTime = getActualDelayTime();
+      if (lfoTarget === 'delayTime') {
+        setDelayLfo(true, lfoRate, lfoDepth, actualDelayTime);
+      } else {
+        setDelayLfo(false, lfoRate, lfoDepth, actualDelayTime);
+      }
     }
-  }, [lfoTarget, isAudioReady]);
+  }, [lfoTarget, isAudioReady, lfoRate, lfoDepth, getActualDelayTime]);
 
   useEffect(() => {
     if (isAudioReady) {
-      setDelay(delayTime, delayFeedback, delayWet);
+      const actualDelayTime = getActualDelayTime();
+      setDelay(actualDelayTime, delayFeedback, delayWet, predelay);
+      // 更新 delay LFO（如果激活）
+      if (lfoTarget === 'delayTime') {
+        updateDelayLfo(lfoRate, lfoDepth, actualDelayTime);
+      }
     }
-  }, [delayTime, delayFeedback, delayWet, isAudioReady]);
+  }, [delayTime, delayTimeSync, delayTimeNote, sequencerBpm, delayFeedback, delayWet, predelay, isAudioReady, getActualDelayTime, lfoTarget, lfoRate, lfoDepth]);
 
   useEffect(() => {
     if (isAudioReady) {
@@ -374,8 +412,11 @@ function App() {
     setLfoDepth(p.lfoDepth);
     setLfoTarget(p.lfoTarget);
     setDelayTime(p.delayTime);
+    setDelayTimeSync(p.delayTimeSync);
+    setDelayTimeNote(p.delayTimeNote);
     setDelayFeedback(p.delayFeedback);
     setDelayWet(p.delayWet);
+    setPredelay(p.predelay);
   }, []);
 
   const handlePresetChange = (index: number) => {
@@ -711,6 +752,7 @@ function App() {
                   <option value="amp">音量（潮汐呼吸）</option>
                   <option value="fmIndex">FM 深度（闪烁颗粒）</option>
                   <option value="modRatio">调制比率（音色倾斜）</option>
+                  <option value="delayTime">延迟时间（时空错位）</option>
                 </select>
               </div>
             </div>
@@ -718,15 +760,46 @@ function App() {
 
           <div className="panel">
             <h2>Delay 延迟</h2>
+            <div className="delay-sync-controls" style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9em' }}>
+                <input
+                  type="checkbox"
+                  checked={delayTimeSync}
+                  onChange={(e) => setDelayTimeSync(e.target.checked)}
+                />
+                <span>BPM 同步</span>
+              </label>
+              {delayTimeSync && (
+                <select
+                  value={delayTimeNote}
+                  onChange={(e) => setDelayTimeNote(e.target.value)}
+                  style={{ marginTop: '8px', padding: '4px', width: '100%' }}
+                >
+                  <option value="1/1">1/1 (全音符)</option>
+                  <option value="1/2">1/2 (二分音符)</option>
+                  <option value="1/4">1/4 (四分音符)</option>
+                  <option value="1/4.">1/4. (附点四分)</option>
+                  <option value="1/4T">1/4T (四分三连音)</option>
+                  <option value="1/8">1/8 (八分音符)</option>
+                  <option value="1/8.">1/8. (附点八分)</option>
+                  <option value="1/8T">1/8T (八分三连音)</option>
+                  <option value="1/16">1/16 (十六分音符)</option>
+                  <option value="1/16.">1/16. (附点十六分)</option>
+                  <option value="1/16T">1/16T (十六分三连音)</option>
+                  <option value="1/32">1/32 (三十二分音符)</option>
+                </select>
+              )}
+            </div>
             <div className="controls-grid">
               <Knob
-                label="时间"
+                label={delayTimeSync ? `时间 (${Math.round(getActualDelayTime())}ms)` : "时间"}
                 value={delayTime}
                 min={parameterBounds.delayTime.min}
                 max={parameterBounds.delayTime.max}
                 step={10}
                 onChange={setDelayTime}
                 unit="ms"
+                disabled={delayTimeSync}
               />
               <Knob
                 label="反馈"
@@ -743,6 +816,15 @@ function App() {
                 max={parameterBounds.delayWet.max}
                 step={0.01}
                 onChange={setDelayWet}
+              />
+              <Knob
+                label="PreDelay"
+                value={predelay}
+                min={parameterBounds.predelay.min}
+                max={parameterBounds.predelay.max}
+                step={1}
+                onChange={setPredelay}
+                unit="ms"
               />
             </div>
           </div>
