@@ -714,25 +714,24 @@ function App() {
 
           <div className="panel preset-selector-panel">
             <h2>预设</h2>
-            <div className="preset-dropdown-container">
-              <div 
-                className="preset-banner-preview"
-                style={{
-                  backgroundImage: 'url(/banners/3.png)',
-                  filter: PRESET_VISUAL_MAP[currentPreset.name]?.bannerFilter || 'none'
-                }}
-              />
-              <select 
-                className="preset-dropdown"
-                value={currentPresetIndex}
-                onChange={(e) => handlePresetChange(Number(e.target.value))}
-              >
-                {factoryPresets.map((preset, index) => (
-                  <option key={preset.name} value={index}>
-                    {preset.name} — {preset.tagline}
-                  </option>
-                ))}
-              </select>
+            <div className="preset-grid">
+              {factoryPresets.map((preset, index) => {
+                const isActive = index === currentPresetIndex;
+                return (
+                  <button
+                    key={preset.name}
+                    className={`preset-card ${isActive ? 'active' : ''}`}
+                    type="button"
+                    onClick={() => handlePresetChange(index)}
+                  >
+                    <div className={`preset-card-banner preset-card-banner-${index}`}></div>
+                    <div className="preset-card-info">
+                      <strong>{preset.name}</strong>
+                      <span>{preset.tagline}</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

@@ -26,7 +26,7 @@
 - **实时编辑** - 音高、门限、概率、Ratchet 控制
 
 ### 工厂预设
-1. **Sleepy Jellyfish** - 柔和的水母呼吸音
+1. **Redshift Atrium** - 红色光轨机库的脉动音
 2. **Robot Teacup** - 机械下午茶音色
 3. **Foggy Pancake** - 雾蒙蒙的热扁桃音
 4. **Submarine Bounce** - 深海低频弹簧
@@ -98,7 +98,7 @@ Ecliptica-LumenJelly-FM/
 
 | 预设 | 可视化 |
 |-----|--------|
-| Sleepy Jellyfish | Jelly |
+| Redshift Atrium | Control Atrium (Void) |
 | Robot Teacup | Model (3D) |
 | Foggy Pancake | Nebula |
 | Submarine Bounce | CausticSea |

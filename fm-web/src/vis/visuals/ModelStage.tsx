@@ -1,7 +1,8 @@
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { Suspense, useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Environment, ContactShadows } from '@react-three/drei';
 import type { VisualProps } from '../registry';
 
@@ -74,32 +75,40 @@ function ModelInner({ audio, params }: VisualProps) {
   const stageParams = params as ModelStageParams;
   const groupRef = useRef<THREE.Group>(null);
   const [error, setError] = useState(false);
-  const [gltf, setGltf] = useState<THREE.Group | null>(null);
 
-  const modelSrc = stageParams?.src || '/models/default/whale.glb';
+  const modelSrc = stageParams?.src || '/models/default/teacup.glb';
   const style = stageParams?.style ?? 'wire';
-  const lineColor = new THREE.Color(stageParams?.lineColor ?? '#e6e6e6');
-  const fillColor = new THREE.Color(stageParams?.fillColor ?? '#111111');
+  const lineColor = useMemo(
+    () => new THREE.Color(stageParams?.lineColor ?? '#e6e6e6'),
+    [stageParams?.lineColor]
+  );
+  const fillColor = useMemo(
+    () => new THREE.Color(stageParams?.fillColor ?? '#111111'),
+    [stageParams?.fillColor]
+  );
 
   useEffect(() => {
-    const loader = new GLTFLoader();
-    loader.load(
-      modelSrc,
-      (result) => {
-        setGltf(result.scene);
-      },
-      undefined,
-      (e) => {
-        console.error('Model loading error:', e);
-        setError(true);
-      }
-    );
+    setError(false);
   }, [modelSrc]);
 
-  const model = useMemo(() => {
-    if (!gltf || error) return null;
+  const gltf = useLoader(
+    GLTFLoader,
+    modelSrc,
+    (loader: GLTFLoader) => {
+      const previous = loader.manager.onError;
+      loader.manager.onError = (url: string) => {
+        setError(true);
+        if (previous) previous(url);
+      };
+    }
+  ) as GLTF;
 
-    const clone = gltf.clone(true);
+  const model = useMemo(() => {
+    if (!gltf || error || !gltf.scene) return null;
+
+    const clone = gltf.scene.clone(true);
+    if (!clone) return null;
+
     const box = new THREE.Box3().setFromObject(clone);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
@@ -110,7 +119,7 @@ function ModelInner({ audio, params }: VisualProps) {
     clone.scale.setScalar(scale);
     
     // 应用材质和样式
-    clone.traverse((obj) => {
+    clone.traverse((obj: THREE.Object3D) => {
       if (!(obj as THREE.Mesh).isMesh) return;
       const mesh = obj as THREE.Mesh;
 
@@ -133,7 +142,7 @@ function ModelInner({ audio, params }: VisualProps) {
         mesh.receiveShadow = false;
       } else {
         const mat = new THREE.MeshStandardMaterial({
-          color: '#cccccc',
+          color: fillColor,
           roughness: 0.35,
           metalness: 0.0
         });
@@ -164,7 +173,7 @@ function ModelInner({ audio, params }: VisualProps) {
   useEffect(() => {
     return () => {
       if (model) {
-        model.traverse((obj) => {
+        model.traverse((obj: THREE.Object3D) => {
           if ((obj as THREE.Mesh).isMesh) {
             const mesh = obj as THREE.Mesh;
             if (mesh.geometry) mesh.geometry.dispose();
@@ -182,7 +191,7 @@ function ModelInner({ audio, params }: VisualProps) {
   }, [model]);
 
   if (error && stageParams?.fallback) {
-    return <mesh></mesh>;
+    return <mesh />;
   }
 
   if (!model) {

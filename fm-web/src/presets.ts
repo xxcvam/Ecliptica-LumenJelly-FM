@@ -24,28 +24,6 @@ export interface Preset {
 
 export const factoryPresets: Preset[] = [
   {
-    name: 'Sleepy Jellyfish',
-    tagline: '柔和的水母在耳边呼吸。',
-    params: {
-      carrierHz: 220,
-      modRatio: 1.0,
-      fmIndex: 0,
-      attackTime: 0.03,
-      decayTime: 0.20,
-      sustainLevel: 0,
-      releaseTime: 0,
-      lfoRate: 0.1,
-      lfoDepth: 0.15,
-      lfoTarget: 'amp',
-      delayTime: 450,
-      delayTimeSync: false,
-      delayTimeNote: '1/8',
-      delayFeedback: 0.6,
-      delayWet: 0.45,
-      predelay: 0
-    }
-  },
-  {
     name: 'Foggy Pancake',
     tagline: '雾蒙蒙的热扁桃音。',
     params: {
@@ -133,6 +111,28 @@ export const factoryPresets: Preset[] = [
       predelay: 0
     }
   },
+  {
+    name: 'Redshift Atrium',
+    tagline: '红色光轨在机库中随节奏脉动。',
+    params: {
+      carrierHz: 220,
+      modRatio: 1.0,
+      fmIndex: 0,
+      attackTime: 0.03,
+      decayTime: 0.20,
+      sustainLevel: 0,
+      releaseTime: 0,
+      lfoRate: 0.1,
+      lfoDepth: 0.15,
+      lfoTarget: 'amp',
+      delayTime: 450,
+      delayTimeSync: false,
+      delayTimeNote: '1/8',
+      delayFeedback: 0.6,
+      delayWet: 0.45,
+      predelay: 0
+    }
+  }
 ];
 
 export const parameterBounds = {
