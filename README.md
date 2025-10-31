@@ -67,14 +67,12 @@ Ecliptica-LumenJelly-FM/
 │   └── vite.config.ts
 ├── README.md                      # 项目概览（本文件）
 ├── QUICKSTART.md                  # 操作说明
-├── MODEL_GUIDE.md                 # 3D 模型使用指南
 ├── RANDOMIZER_GUIDE.md            # 音序器随机指南
 ├── CONTROL_SYSTEM.md              # 控制系统概述
 └── TROUBLESHOOTING.md             # 常见问题
 ```
 
 ## 📚 更多文档
-- `MODEL_GUIDE.md`：模型导入、Fallback 机制、纹理建议
 - `RANDOMIZER_GUIDE.md`：音序器智能随机策略
 - `TROUBLESHOOTING.md`：环境、权限、音频相关问题排查
 
