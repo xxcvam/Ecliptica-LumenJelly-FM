@@ -1,138 +1,91 @@
 # Ecliptica LumenJelly FM
 
-一个现代化的 FM 合成器 Web 应用，融合了音频合成技术与沉浸式可视化体验。
+现代化的 FM 合成器 Web 应用，将 Web Audio、AudioWorklet 与实时 3D 可视化融合在同一界面中。
 
-## 🎹 特性
+## 🎹 核心特性
 
 ### 音频引擎
-- **FM 合成** - 频率调制合成核心
-- **ADSR 包络** - 完整的攻击/衰减/保持/释放包络
-- **LFO 调制** - 低频振荡器，支持 pitch/amp/fmIndex/modRatio 目标
-- **Delay 效果** - 立体声延迟效果
+- **FM 合成核心**：AudioWorklet 驱动的低延迟载波/调制器实现
+- **包络与调制**：全参数 ADSR、LFO 目标支持 `pitch`/`amp`/`fmIndex`/`modRatio`/`delayTime`
+- **立体声 Delay**：Ping-Pong 延迟、BPM 同步、音符时值选择、可选 PreDelay
+- **参数保护**：延迟反馈与输出增益均有安全上限，避免啸叫或削波
 
-### 可视化系统（LumenJelly）
-- **6 种实时可视化效果**：
-  - 🪼 **Jelly** - 水母发光触手
-  - 🌫️ **Nebula** - 星云雾气 Shader
-  - 🫧 **Bubbles** - 气泡粒子系统
-  - 🌊 **CausticSea** - 焦散海洋光效
-  - 💠 **NeonGrid** - 霓虹网格
-  - 🐋 **ModelStage** - 3D 模型舞台
-- **自定义模型支持** - 上传并使用自己的 glTF/GLB 模型
+### LumenJelly 可视化系统
+- **6 种实时视觉**：Nebula、Bubbles、CausticSea、Jelly、ModelStage、Control Atrium
+- **3D 模型舞台**：加载自定义 glTF/GLB，线框/PBR 两种渲染风格与 Fallback 机制
+- **音频驱动**：RMS/频段 FFT 驱动光照、粒子、体积雾等视觉反馈
+- **性能自适应**：质量参数自动降级，适配移动端与低性能设备
 
-### 音序器
-- **16 步音序器** - 支持多模式（4/4、3/4、5/4）
-- **Swing** - 节奏摇摆控制
-- **实时编辑** - 音高、门限、概率、Ratchet 控制
+### 音序器与智能随机
+- **16 步音序器**：Forward / Ping-Pong / Random 播放模式与 swing 控制
+- **音阶量化**：24 个根音 × 多音阶（五声、民族、爵士等）自动量化
+- **富参数步进**：每步音高、力度、门限、概率、Ratchet（多触发）可独立编辑
+- **智能随机**：内置 🎲 算法根据音阶特性生成音乐性序列，支持再次迭代
 
-### 工厂预设
-1. **Redshift Atrium** - 红色光轨机库的脉动音
-2. **Robot Teacup** - 机械下午茶音色
-3. **Foggy Pancake** - 雾蒙蒙的热扁桃音
-4. **Submarine Bounce** - 深海低频弹簧
-5. **Bubble Pop** - 冒泡糖爆裂声
-6. **Ice Cream Bell** - 甜筒车街角钟声
-7. **Slow Whale** - 鲸鱼尾鳍尾波
-8. **Midnight Arcade** - 午夜街机霓虹
+### 工厂预设与视觉映射
+- Redshift Atrium ↔ Control Atrium (Void)
+- Foggy Pancake ↔ Nebula
+- Submarine Bounce ↔ CausticSea
+- Bubble Pop ↔ Bubbles
+- Robot Teacup ↔ Model Stage (线框杯具)
 
-## 🚀 快速开始
+## 🚀 快速上手
 
-### 安装依赖
+### 环境需求
+- Node.js ≥ 18（建议使用最新的 LTS 版本）
+- npm 10+（随 Node 一起提供）
+
+### 安装与开发
 ```bash
 cd fm-web
 npm install
-```
-
-### 开发模式
-```bash
 npm run dev
 ```
+开发服务器默认运行在 `http://localhost:5173`。
 
-### 生产构建
-```bash
-npm run build
-```
+### 其他脚本
+- `npm run build`：生成生产构建（输出在 `dist/`）
+- `npm run preview`：本地预览构建产物
+- `npm run lint`：运行 ESLint 代码检查
 
-### 预览构建
-```bash
-npm run preview
-```
-
-## 🛠️ 技术栈
-
-- **React** - UI 框架
-- **TypeScript** - 类型安全
-- **Vite** - 构建工具
-- **Web Audio API** - 音频处理
-- **AudioWorklet** - 低延迟音频线程
-- **Three.js** - 3D 图形
-- **React Three Fiber** - React 3D 渲染
-
-## 📦 项目结构
+## 🗂️ 项目结构
 
 ```
 Ecliptica-LumenJelly-FM/
-├── fm-web/                 # 主应用
-│   ├── src/
-│   │   ├── audio/          # 音频引擎
-│   │   │   └── graph.ts   # 音频节点图
-│   │   ├── ui/             # UI 组件
-│   │   │   ├── Knob.tsx
-│   │   │   ├── Slider.tsx
-│   │   │   └── Keyboard.tsx
-│   │   ├── vis/            # 可视化系统
-│   │   │   ├── visuals/   # 可视化组件
-│   │   │   ├── shaders/    # GLSL 着色器
-│   │   │   └── registry.ts # 可视化注册表
-│   │   ├── presets.ts      # 工厂预设
-│   │   └── App.tsx         # 主应用
+├── fm-web/                        # 主应用
 │   ├── public/
 │   │   └── fm-voice-processor.js  # AudioWorklet 处理器
-│   └── package.json
-└── todo.md                  # 项目待办事项
+│   ├── src/
+│   │   ├── audio/                 # 音频图、延迟、LFO 等逻辑
+│   │   ├── sequencer/             # 16 步音序器与随机生成
+│   │   ├── presets/               # 预设与视觉映射
+│   │   ├── ui/                    # UI 控件（Knob、Slider、Keyboard ...）
+│   │   ├── vis/                   # R3F 可视化系统
+│   │   ├── App.tsx                # 应用入口
+│   │   └── main.tsx               # React 入口
+│   ├── package.json
+│   └── vite.config.ts
+├── README.md                      # 项目概览（本文件）
+├── QUICKSTART.md                  # 操作说明
+├── MODEL_GUIDE.md                 # 3D 模型使用指南
+├── RANDOMIZER_GUIDE.md            # 音序器随机指南
+├── CONTROL_SYSTEM.md              # 控制系统概述
+└── TROUBLESHOOTING.md             # 常见问题
 ```
 
-## 🎨 可视化映射
+## 📚 更多文档
+- `MODEL_GUIDE.md`：模型导入、Fallback 机制、纹理建议
+- `NEW_FEATURES.md`：近期功能更新与实现细节
+- `RANDOMIZER_GUIDE.md`：音序器智能随机策略
+- `TROUBLESHOOTING.md`：环境、权限、音频相关问题排查
 
-每个预设都有对应的视觉效果：
-
-| 预设 | 可视化 |
-|-----|--------|
-| Redshift Atrium | Control Atrium (Void) |
-| Robot Teacup | Model (3D) |
-| Foggy Pancake | Nebula |
-| Submarine Bounce | CausticSea |
-| Bubble Pop | Bubbles |
-| Ice Cream Bell | NeonGrid |
-| Slow Whale | Model (3D) |
-| Midnight Arcade | NeonGrid |
-
-### 3D 模型系统
-- **支持的格式**：GLB（推荐）、glTF
-- **文件大小**：建议 < 5MB，最大 10MB
-- **使用方式**：通过 UI 上传或放入 `/models/default/` 目录
-- **Fallback 机制**：模型加载失败时自动切换到备用可视化
-- **详细指南**：查看 [MODEL_GUIDE.md](MODEL_GUIDE.md)
-
-## 📝 开发状态
-
-- ✅ 音频引擎（FM + ADSR + LFO + Delay）
-- ✅ 可视化系统（LumenJelly - 6 种效果）
-- ✅ 3D 模型系统（自定义上传 + Fallback）
-- ✅ 音序器（16 步 + 多模式）
-- ✅ 工厂预设（8 个音色）
-- ✅ 移动端优化
-- ✅ 性能自适应降级
-
-## 🎯 项目名由来
-
-**Ecliptica** - 日食般的音色变化，暗指 FM 调制的光学折射  
-**LumenJelly** - 光之水母，指代核心可视化：动态发光的水母触手
+## 🛠️ 技术栈
+- React 19 + TypeScript 5
+- Vite 7 + ESLint 9
+- Web Audio API + AudioWorklet
+- Three.js 0.180 + React Three Fiber + @react-three/drei
+- Zustand 状态管理
 
 ## 📄 许可证
 
 MIT
-
-## 👤 作者
-
-qiangqian

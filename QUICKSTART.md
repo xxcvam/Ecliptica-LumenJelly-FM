@@ -1,156 +1,52 @@
-# 🚀 FM 合成器快速启动指南
+# 🚀 WebFM 快速上手指南
 
-## 项目位置
+## 1. 准备环境
+- Node.js ≥ 18（推荐使用最新 LTS，已内置 npm）
+- 建议在项目根目录克隆后通过终端进入 `fm-web/`
 
-```
-/Users/qiangqian/Desktop/ZoeMax/WebFM/fm-web/
-```
-
-## 启动步骤
-
-1. **进入项目目录**
 ```bash
 cd /Users/qiangqian/Desktop/ZoeMax/WebFM/fm-web
+npm install
 ```
 
-2. **启动开发服务器**
+## 2. 运行开发服务器
 ```bash
 npm run dev
 ```
+- 控制台会打印访问地址（默认 `http://localhost:5173`）
+- 第一次进入页面后，点击界面上的「启动音频引擎」按钮以解锁浏览器音频上下文
 
-3. **打开浏览器**
-   - 访问显示的本地地址（通常是 `http://localhost:5173`）
+## 3. 初次体验建议
+- **工厂预设**：从 `Redshift Atrium`、`Foggy Pancake`、`Submarine Bounce`、`Bubble Pop`、`Robot Teacup` 开始试听
+- **音序器**：
+  - 选择音阶与根音，点击 🎲 按钮可生成音乐性序列
+  - 调整 Swing、Step Length、Ratchet 体验不同律动
+  - 启动播放后可在 Delay 面板打开 BPM 同步，聆听与节奏锁定的回声
+- **可视化舞台**：
+  - 预设会自动切换到对应视觉
+  - 在模型预设中可上传自定义 GLB/GLTF 模型，失败时会自动回退至备用可视化
 
-4. **使用合成器**
-   - 点击「启动音频引擎」按钮
-   - 选择预设或调整参数
-   - 点击键盘演奏
+## 4. 更多脚本
+- `npm run build`：生成生产构建到 `dist/`
+- `npm run preview`：本地预览打包结果
+- `npm run lint`：运行 ESLint（TypeScript + React 规则）
 
-## 项目特性 ✨
+## 5. 关键功能速览
+- **音频引擎**：AudioWorklet FM 合成、ADSR、LFO（可调制 `pitch`/`amp`/`fmIndex`/`modRatio`/`delayTime`）、立体声 Delay、PreDelay
+- **可视化系统**：六套 R3F 场景（Nebula/Bubbles/CausticSea/Jelly/ModelStage/Control Atrium），响应音频能量
+- **音序器**：16 步、Forward/Ping-Pong/Random 模式、概率/力度/门限/Ratchet 控制、智能随机、音阶量化
 
-### 核心功能
-- ✅ FM 合成引擎（AudioWorklet 实现）
-- ✅ ADSR 包络控制
-- ✅ LFO 调制（音高/音量）
-- ✅ Delay 效果器
-- ✅ 8 个工厂预设
-- ✅ 13 键虚拟键盘（C2-C4）
-- ✅ 移动端触摸支持
+## 6. 常见问题排查
+- **没有声音**：确认已点击「启动音频引擎」，并保持浏览器标签页为激活状态
+- **音频破音或啸叫**：检查 Delay 反馈是否接近 0.8，必要时降低湿度
+- **模型加载失败**：参阅 `MODEL_GUIDE.md`，确认文件小于 10MB 且为 glTF/GLB 格式
+- **浏览器兼容性**：推荐 Chrome/Edge 120+、Safari 16.4+、Firefox 120+
 
-### 预设列表
-1. **E-Piano** - 电钢琴音色
-2. **MetalBell** - 金属铃声
-3. **SoftPad** - 柔和垫音
-4. **BassSolid** - 扎实贝斯
-5. **Pluck** - 拨弦音色
-6. **Glass** - 玻璃质感
-7. **Drone** - 持续音
-8. **Keys** - 键盘音色
-
-## 技术实现
-
-### 文件结构
-```
-fm-web/
-├── public/
-│   └── fm-voice-processor.js    # AudioWorklet 音频处理器
-├── src/
-│   ├── audio/
-│   │   └── graph.ts              # 音频图管理
-│   ├── ui/
-│   │   ├── Knob.tsx             # 旋钮组件
-│   │   ├── Slider.tsx           # 滑块组件
-│   │   └── Keyboard.tsx         # 键盘组件
-│   ├── App.tsx                  # 主应用
-│   ├── App.css                  # 样式
-│   └── presets.ts               # 预设定义
-└── index.html
-```
-
-### AudioWorklet 处理器
-- **相位累加**：载波 + 调制器
-- **FM 方程**：`sin(φc + index × sin(φm))`
-- **ADSR 状态机**：完整的包络实现
-- **LFO**：支持音高和音量调制
-- **立体声输出**
-
-### 音频路由
-```
-Worklet → Dry → Master → Output
-       ↓
-       Delay → Wet → Master
-         ↑
-       Feedback ←
-```
-
-### 安全限制
-- 主增益限制为 -6dB (0.5)
-- Delay 反馈最大 0.8（防止啸叫）
-- 当 wet ≥ 0.99 且 feedback > 0.7 时自动限制
-
-## 参数说明
-
-### FM 合成
-- **调制比率** (0.5-3)：决定谐波结构
-- **FM 深度** (0-150)：控制音色丰富度
-
-### ADSR
-- **Attack** (0-2s)：起音时间
-- **Decay** (0-2s)：衰减时间
-- **Sustain** (0-1)：持续电平
-- **Release** (0-2s)：释放时间
-
-### LFO
-- **频率** (0.1-12 Hz)：振荡速度
-- **深度** (0-1)：调制强度
-- **目标**：音高或音量
-
-### Delay
-- **时间** (30-600 ms)：延迟时长
-- **反馈** (0-0.8)：回声次数
-- **混合** (0-1)：干湿比
-
-## 移动端使用
-
-- ✅ 响应式设计
-- ✅ 触摸操作支持
-- ✅ 防止页面缩放
-- ✅ iOS Safari 兼容
-- ✅ Android Chrome 兼容
-
-## 常见问题
-
-### 无声音？
-1. 确保点击了「启动音频引擎」
-2. 检查设备音量
-3. 尝试刷新页面
-
-### 移动端卡顿？
-- AudioWorklet 已优化性能
-- 避免极端参数（如 FM 深度过高）
-
-### 浏览器兼容性
-- Chrome/Edge 66+
-- Firefox 76+
-- Safari 14.1+
-- iOS Safari 14.5+
-
-## 下一步
-
-- 🎵 尝试不同的预设
-- 🎛️ 调整参数创造自己的音色
-- 📱 在移动设备上测试
-- 🔧 查看代码实现细节
-
-## 构建生产版本
-
+## 7. 生产部署
 ```bash
 npm run build
+npm run preview   # 可选，检查 dist 输出
 ```
-
-构建产物在 `dist/` 目录，可部署到任何静态托管服务。
-
----
+将 `dist/` 目录上传至任意静态托管服务（Vercel、Netlify、GitHub Pages 等）即可部署。
 
 Happy Synthesizing! 🎹✨
-
