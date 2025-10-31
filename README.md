@@ -75,7 +75,6 @@ Ecliptica-LumenJelly-FM/
 
 ## 📚 更多文档
 - `MODEL_GUIDE.md`：模型导入、Fallback 机制、纹理建议
-- `NEW_FEATURES.md`：近期功能更新与实现细节
 - `RANDOMIZER_GUIDE.md`：音序器智能随机策略
 - `TROUBLESHOOTING.md`：环境、权限、音频相关问题排查
 
