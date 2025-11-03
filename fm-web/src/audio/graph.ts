@@ -42,7 +42,8 @@ export async function initAudio(): Promise<void> {
   
   try {
     // 加载 AudioWorklet 模块
-    await audioContext.audioWorklet.addModule('/fm-voice-processor.js');
+    const workletUrl = `${import.meta.env.BASE_URL}fm-voice-processor.js`;
+    await audioContext.audioWorklet.addModule(workletUrl);
     
     // 创建 FM 合成器节点
     workletNode = new AudioWorkletNode(audioContext, 'fm-voice-processor', {
